@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="50%" stop-color="#0f766e" />
+      <stop offset="100%" stop-color="#0b192c" />
+    </linearGradient>
+    <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#2dd4bf" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+  </defs>
+  <!-- Shield Base -->
+  <path d="M32 4L10 14V30C10 44 19.5 56.5 32 60C44.5 56.5 54 44 54 30V14L32 4Z" fill="url(#shieldGrad)" stroke="#38bdf8" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- Lighthouse / Anchor / Wave Motif -->
+  <path d="M32 16V26M32 26C28 26 23 29 23 35M32 26C36 26 41 29 41 35" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="32" cy="18" r="3" fill="#38bdf8"/>
+  <!-- Ocean Waves Inside Shield -->
+  <path d="M17 41C21 38 25 38 29 41C33 44 37 44 41 41C44 39 46 39 48 40" stroke="url(#waveGrad)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M20 48C23.5 45.5 27.5 45.5 31.5 48C35.5 50.5 39.5 50.5 44 48" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" opacity="0.8"/>
+</svg>

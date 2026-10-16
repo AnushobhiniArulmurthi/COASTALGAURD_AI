@@ -1,0 +1,73 @@
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+@media (max-width: 1200px) {
+  .dashboardGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.twoColumnGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+@media (max-width: 1024px) {
+  .twoColumnGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.statusIndicatorDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.tableContainer {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+}
+
+.adminTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.adminTable th {
+  background-color: var(--color-bg-alt);
+  color: var(--color-text-secondary);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border-light);
+  white-space: nowrap;
+}
+
+.adminTable td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-navy-primary);
+}
+
+.adminTable tr:last-child td {
+  border-bottom: none;
+}
+
+.adminTable tr:hover td {
+  background-color: rgba(2, 132, 199, 0.03);
+}
