@@ -1,0 +1,1 @@
+# Public static images directory

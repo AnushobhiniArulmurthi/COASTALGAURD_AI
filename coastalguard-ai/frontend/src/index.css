@@ -1,0 +1,4 @@
+/* CoastalGuard AI Master Stylesheet */
+@import './styles/variables.css';
+@import './styles/global.css';
+@import './styles/utilities.css';
