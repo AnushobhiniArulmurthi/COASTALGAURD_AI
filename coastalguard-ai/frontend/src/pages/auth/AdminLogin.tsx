@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowLeft, AlertCircle, ArrowRight, Info } from 'lucide-react';
 import { Logo } from '../../components/common/Logo';
+import { LanguageSelector } from '../../components/common/LanguageSelector';
+import { useLanguage } from '../../i18n/LanguageContext';
 import styles from './AdminLogin.module.css';
 
 export const AdminLogin: React.FC = () => {
+  const { t, language } = useLanguage();
   const [email, setEmail] = useState('admin@coastalguard.gov.in');
   const [password, setPassword] = useState('demo-coastguard-pass');
   const [showPassword, setShowPassword] = useState(false);
@@ -19,12 +22,12 @@ export const AdminLogin: React.FC = () => {
     setError(null);
 
     if (!email.trim() || !password.trim()) {
-      setError('Please provide both administrative email and security passphrase.');
+      setError(t('auth.errorRequired'));
       return;
     }
 
     if (!email.includes('@')) {
-      setError('Please enter a valid official email address.');
+      setError(t('auth.errorEmail'));
       return;
     }
 
@@ -40,17 +43,22 @@ export const AdminLogin: React.FC = () => {
   return (
     <div className={styles.authWrapper}>
       <div className={styles.authCard}>
+        {/* Top-Right Language Switcher */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-2)' }}>
+          <LanguageSelector compact />
+        </div>
+
         {/* Header Branding */}
         <div className={styles.headerContainer}>
           <Logo size="md" />
           <div>
             <span className={styles.badgeTag}>
-              <ShieldCheck size={14} /> Official Command Access
+              <ShieldCheck size={14} /> {t('auth.officialBadge')}
             </span>
           </div>
-          <h1 className={styles.portalTitle}>Admin Portal</h1>
+          <h1 className={styles.portalTitle}>{t('auth.adminTitle')}</h1>
           <p className={styles.portalSubtitle}>
-            Monitor marine conditions and manage safety alerts.
+            {t('auth.adminSubtitle')}
           </p>
         </div>
 
@@ -71,7 +79,8 @@ export const AdminLogin: React.FC = () => {
         >
           <Info size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
           <span>
-            <strong>Prototype Demo Mode:</strong> Any sample credentials will grant access to the command dashboard for review.
+            <strong>{language === 'ta' ? 'மாதிரி செயல்முறை:' : 'Prototype Demo Mode:'}</strong>{' '}
+            {t('auth.demoNotice')}
           </span>
         </div>
 
@@ -87,7 +96,7 @@ export const AdminLogin: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
             <label className={styles.label} htmlFor="admin-email">
-              Command Email
+              {t('auth.email')}
             </label>
             <div className={styles.inputWrapper}>
               <Mail size={18} className={styles.inputIcon} />
@@ -105,7 +114,7 @@ export const AdminLogin: React.FC = () => {
 
           <div className={styles.formGroup}>
             <label className={styles.label} htmlFor="admin-password">
-              Security Passphrase
+              {t('auth.password')}
             </label>
             <div className={styles.inputWrapper}>
               <Lock size={18} className={styles.inputIcon} />
@@ -122,7 +131,7 @@ export const AdminLogin: React.FC = () => {
                 type="button"
                 className={styles.togglePassword}
                 onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -137,7 +146,7 @@ export const AdminLogin: React.FC = () => {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 style={{ accentColor: 'var(--color-navy-primary)' }}
               />
-              <span>Remember this console</span>
+              <span>{t('auth.rememberMe')}</span>
             </label>
           </div>
 
@@ -147,10 +156,10 @@ export const AdminLogin: React.FC = () => {
             disabled={isLoading}
           >
             {isLoading ? (
-              <span>Authenticating...</span>
+              <span>{t('auth.authenticating')}</span>
             ) : (
               <>
-                <span>Sign in to Admin Console</span>
+                <span>{t('auth.signInAdmin')}</span>
                 <ArrowRight size={18} />
               </>
             )}
@@ -161,10 +170,11 @@ export const AdminLogin: React.FC = () => {
         <div className={styles.footerLinks} style={{ justifyContent: 'center' }}>
           <Link to="/" className={styles.backHome}>
             <ArrowLeft size={16} />
-            <span>Back to Homepage</span>
+            <span>{t('auth.backHome')}</span>
           </Link>
         </div>
       </div>
     </div>
   );
 };
+export default AdminLogin;

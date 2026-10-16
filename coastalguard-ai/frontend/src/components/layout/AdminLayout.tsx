@@ -14,12 +14,15 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { Logo } from '../common/Logo';
+import { LanguageSelector } from '../common/LanguageSelector';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
+  const { t, language } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const navigate = useNavigate();
@@ -27,27 +30,27 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   const navItems = [
     {
-      title: 'Dashboard',
+      title: t('nav.dashboard'),
       path: '/admin/dashboard',
       icon: <LayoutDashboard size={20} />,
     },
     {
-      title: 'Marine Monitoring',
+      title: t('nav.marineMonitoring'),
       path: '/admin/marine-monitoring',
       icon: <CloudSun size={20} />,
     },
     {
-      title: 'Boat & Regional Monitoring',
+      title: t('nav.boatMonitoring'),
       path: '/admin/boat-monitoring',
       icon: <Compass size={20} />,
     },
     {
-      title: 'Risk & Alert Management',
+      title: t('nav.riskAlerts'),
       path: '/admin/risk-alerts',
       icon: <AlertTriangle size={20} />,
     },
     {
-      title: 'User Management',
+      title: t('nav.userManagement'),
       path: '/admin/users',
       icon: <Users size={20} />,
     },
@@ -59,7 +62,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   const getPageTitle = () => {
     const current = navItems.find((item) => item.path === location.pathname);
-    return current ? current.title : 'Admin Command Console';
+    return current ? current.title : (language === 'ta' ? 'நிர்வாக கட்டுப்பாட்டு மையம்' : 'Admin Command Console');
   };
 
   return (
@@ -144,36 +147,36 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>
-              Authority Operations
+              {t('auth.adminTitle')}
             </div>
             <div style={{ fontSize: '0.7rem', color: '#38bdf8' }}>
-              Coastal Command Console
+              {language === 'ta' ? 'அதிகாரப்பூர்வ கட்டளை மையம்' : 'Official Command Portal'}
             </div>
           </div>
         </div>
 
-        {/* Navigation Items */}
+        {/* Navigation Links */}
         <nav
           style={{
-            padding: 'var(--space-4) var(--space-3)',
             flex: 1,
-            overflowY: 'auto',
+            padding: 'var(--space-4) var(--space-3)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.35rem',
+            gap: 'var(--space-1)',
+            overflowY: 'auto',
           }}
         >
           <div
             style={{
-              padding: '0 0.5rem 0.5rem',
+              padding: '0 var(--space-3) var(--space-2)',
               fontSize: '0.7rem',
               fontWeight: 700,
               textTransform: 'uppercase',
-              letterSpacing: '0.08em',
               color: 'var(--color-text-inverse-muted)',
+              letterSpacing: '0.05em',
             }}
           >
-            Command Modules
+            {t('nav.commandModules')}
           </div>
 
           {navItems.map((item) => (
@@ -181,17 +184,21 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               key={item.path}
               to={item.path}
               onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `admin-nav-item ${isActive ? 'active' : ''}`
+              }
               style={({ isActive }) => ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '0.65rem 0.85rem',
                 borderRadius: 'var(--radius-md)',
-                fontSize: '0.9rem',
-                fontWeight: isActive ? 600 : 500,
                 color: isActive ? '#ffffff' : 'var(--color-text-inverse-muted)',
                 backgroundColor: isActive ? 'var(--color-ocean-blue)' : 'transparent',
+                fontWeight: isActive ? 600 : 500,
+                fontSize: '0.9rem',
                 transition: 'all var(--transition-fast)',
+                textDecoration: 'none',
               })}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -241,7 +248,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   Commander V. Nair
                 </div>
                 <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-                  Coast Guard Maritime Ops
+                  {language === 'ta' ? 'கடலோர காவல்படை கண்காணிப்பு' : 'Coast Guard Maritime Ops'}
                 </div>
               </div>
             </div>
@@ -262,11 +269,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               border: '1px solid rgba(239, 68, 68, 0.3)',
               fontSize: '0.85rem',
               fontWeight: 600,
+              cursor: 'pointer',
               transition: 'background-color var(--transition-fast)',
             }}
           >
             <LogOut size={16} />
-            <span>Logout to Home</span>
+            <span>{t('nav.logout')}</span>
           </button>
         </div>
       </aside>
@@ -321,11 +329,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             </div>
           </div>
 
-          {/* Right Header Badges & Actions */}
+          {/* Right Header: Language Selector + Notifications */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-            <span className="badge-prototype prototype-chip" style={{ display: 'none' }}>
-              Demo Console
-            </span>
+            <LanguageSelector />
 
             {/* Notification bell */}
             <div style={{ position: 'relative' }}>
@@ -341,8 +347,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  cursor: 'pointer',
                 }}
-                title="Notifications"
+                title={t('nav.activeAlerts')}
               >
                 <Bell size={18} />
                 <span
@@ -375,61 +382,37 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
                     <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-navy-primary)' }}>
-                      Active Alerts (3)
+                      {t('nav.activeAlerts')} (3)
                     </span>
                     <button
                       onClick={() => setShowNotifications(false)}
-                      style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}
+                      style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}
                     >
-                      Close
+                      {t('nav.close')}
                     </button>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8rem' }}>
-                    <div style={{ padding: '0.5rem', backgroundColor: 'var(--color-extreme-bg)', borderRadius: 'var(--radius-sm)', color: 'var(--color-extreme-text)' }}>
-                      🚨 Red Alert: Cyclonic surge in Kanyakumari sector.
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', fontSize: '0.8rem' }}>
+                    <div style={{ padding: '0.5rem', backgroundColor: '#fef2f2', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid #ef4444' }}>
+                      <div style={{ fontWeight: 600, color: '#991b1b' }}>
+                        {language === 'ta' ? 'அதி தீவிர புயல் எச்சரிக்கை - கன்னியாகுமரி' : 'Extreme Cyclone Alert - Kanyakumari'}
+                      </div>
+                      <div style={{ color: '#b91c1c', fontSize: '0.75rem' }}>4.5m swell surge</div>
                     </div>
-                    <div style={{ padding: '0.5rem', backgroundColor: 'var(--color-danger-bg)', borderRadius: 'var(--radius-sm)', color: 'var(--color-danger-text)' }}>
-                      ⚠️ High Swells: Gale warnings for Gulf of Mannar.
+                    <div style={{ padding: '0.5rem', backgroundColor: '#fffbeb', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid #f59e0b' }}>
+                      <div style={{ fontWeight: 600, color: '#92400e' }}>
+                        {language === 'ta' ? 'அதிவேக காற்று எச்சரிக்கை - மன்னார் வளைகுடா' : 'High Wind Advisory - Gulf of Mannar'}
+                      </div>
+                      <div style={{ color: '#b45309', fontSize: '0.75rem' }}>28 knot wind gusts</div>
                     </div>
-                    <div style={{ padding: '0.5rem', backgroundColor: 'var(--color-warning-bg)', borderRadius: 'var(--radius-sm)', color: 'var(--color-warning-text)' }}>
-                      ⚡ Convective storm near Nagapattinam Delta.
+                    <div style={{ padding: '0.5rem', backgroundColor: '#eff6ff', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid #3b82f6' }}>
+                      <div style={{ fontWeight: 600, color: '#1e40af' }}>
+                        {language === 'ta' ? 'துறைமுக தகவல் - காசிமேடு' : 'Harbour Notice - Kasimedu'}
+                      </div>
+                      <div style={{ color: '#1d4ed8', fontSize: '0.75rem' }}>Normal entry open</div>
                     </div>
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* Admin Mini Profile */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.3rem 0.6rem',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-bg-alt)',
-                border: '1px solid var(--color-border-light)',
-              }}
-            >
-              <div
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: '50%',
-                  backgroundColor: 'var(--color-navy-primary)',
-                  color: '#ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                }}
-              >
-                VN
-              </div>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)' }} className="admin-name">
-                V. Nair (Admin)
-              </span>
             </div>
           </div>
         </header>
@@ -450,36 +433,35 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
       {/* Responsive layout styles */}
       <style>{`
-        @media (min-width: 1024px) {
-          .admin-sidebar {
-            position: fixed !important;
-            transform: translateX(0) !important;
-          }
-          .admin-main-wrapper {
-            margin-left: 280px !important;
-          }
-          .admin-menu-toggle {
-            display: none !important;
-          }
-          .sidebar-close-btn {
-            display: none !important;
-          }
+        .admin-main-wrapper {
+          margin-left: 280px;
+        }
+        .admin-menu-toggle {
+          display: none !important;
+        }
+        .sidebar-close-btn {
+          display: none !important;
+        }
+        @media (min-width: 900px) {
           .prototype-chip {
-            display: inline-flex !important;
+            display: inline-block !important;
           }
         }
-        @media (max-width: 1023px) {
+        @media (max-width: 1024px) {
           .admin-sidebar {
             transform: translateX(-100%);
           }
           .admin-sidebar.open {
-            transform: translateX(0) !important;
+            transform: translateX(0);
           }
           .admin-main-wrapper {
-            margin-left: 0 !important;
+            margin-left: 0;
           }
-          .admin-name {
-            display: none;
+          .admin-menu-toggle {
+            display: flex !important;
+          }
+          .sidebar-close-btn {
+            display: block !important;
           }
         }
       `}</style>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertCircle, AlertTriangle, CheckCircle, Info, Radio, ShieldAlert } from 'lucide-react';
 import type { SeverityLevel, BoatStatus, UserStatus } from '../../types';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 type BadgeType = SeverityLevel | BoatStatus | UserStatus | 'Open' | 'Caution' | 'Closed to Entry' | 'Strong' | 'Degraded' | 'Offline';
 
@@ -15,6 +16,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   showIcon = true,
   size = 'md',
 }) => {
+  const { language } = useLanguage();
   const normalized = String(status).toLowerCase();
 
   let bg = '#f1f5f9';
@@ -28,60 +30,110 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       bg = 'var(--color-success-bg)';
       color = 'var(--color-success-text)';
       border = 'var(--color-success-border)';
-      label = 'Low Risk';
+      label = language === 'ta' ? 'குறைவு' : 'Low Risk';
       IconComponent = CheckCircle;
       break;
     case 'moderate':
       bg = 'var(--color-warning-bg)';
       color = 'var(--color-warning-text)';
       border = 'var(--color-warning-border)';
-      label = 'Moderate Caution';
+      label = language === 'ta' ? 'மிதமானது' : 'Moderate Caution';
       IconComponent = AlertTriangle;
       break;
     case 'high':
       bg = 'var(--color-danger-bg)';
       color = 'var(--color-danger-text)';
       border = 'var(--color-danger-border)';
-      label = 'High Danger';
+      label = language === 'ta' ? 'அதிகம்' : 'High Danger';
       IconComponent = AlertCircle;
       break;
     case 'extreme':
       bg = 'var(--color-extreme-bg)';
       color = 'var(--color-extreme-text)';
       border = 'var(--color-extreme-border)';
-      label = 'Extreme Danger';
+      label = language === 'ta' ? 'மிக அதிகம்' : 'Extreme Danger';
       IconComponent = ShieldAlert;
       break;
     case 'sample':
+      bg = 'var(--color-success-bg)';
+      color = 'var(--color-success-text)';
+      border = 'var(--color-success-border)';
+      label = language === 'ta' ? 'இணைக்கப்பட்டது' : 'Sample Synced';
+      IconComponent = CheckCircle;
+      break;
     case 'active':
+      bg = 'var(--color-success-bg)';
+      color = 'var(--color-success-text)';
+      border = 'var(--color-success-border)';
+      label = language === 'ta' ? 'செயலில்' : 'Active';
+      IconComponent = CheckCircle;
+      break;
     case 'open':
+      bg = 'var(--color-success-bg)';
+      color = 'var(--color-success-text)';
+      border = 'var(--color-success-border)';
+      label = language === 'ta' ? 'திறந்துள்ளது' : 'Open';
+      IconComponent = CheckCircle;
+      break;
     case 'strong':
       bg = 'var(--color-success-bg)';
       color = 'var(--color-success-text)';
       border = 'var(--color-success-border)';
-      label = status === 'sample' ? 'Sample Synced' : status;
+      label = language === 'ta' ? 'வலுவானது' : 'Strong';
       IconComponent = CheckCircle;
       break;
     case 'stale':
+      bg = 'var(--color-warning-bg)';
+      color = 'var(--color-warning-text)';
+      border = 'var(--color-warning-border)';
+      label = language === 'ta' ? 'பழைய சிக்னல்' : 'Stale Signal';
+      IconComponent = Radio;
+      break;
     case 'caution':
+      bg = 'var(--color-warning-bg)';
+      color = 'var(--color-warning-text)';
+      border = 'var(--color-warning-border)';
+      label = language === 'ta' ? 'எச்சரிக்கை' : 'Caution';
+      IconComponent = AlertTriangle;
+      break;
     case 'degraded':
       bg = 'var(--color-warning-bg)';
       color = 'var(--color-warning-text)';
       border = 'var(--color-warning-border)';
-      label = status === 'stale' ? 'Stale Signal' : status;
+      label = language === 'ta' ? 'பலவீனமானது' : 'Degraded';
       IconComponent = Radio;
       break;
     case 'unknown':
+      bg = 'var(--color-danger-bg)';
+      color = 'var(--color-danger-text)';
+      border = 'var(--color-danger-border)';
+      label = language === 'ta' ? 'தெரியவில்லை' : 'Unknown Beacon';
+      IconComponent = AlertTriangle;
+      break;
     case 'inactive':
     case 'suspended':
+      bg = 'var(--color-danger-bg)';
+      color = 'var(--color-danger-text)';
+      border = 'var(--color-danger-border)';
+      label = language === 'ta' ? 'செயலற்றது' : 'Inactive';
+      IconComponent = AlertTriangle;
+      break;
     case 'closed to entry':
+      bg = 'var(--color-danger-bg)';
+      color = 'var(--color-danger-text)';
+      border = 'var(--color-danger-border)';
+      label = language === 'ta' ? 'நுழைவு தடை' : 'Closed to Entry';
+      IconComponent = AlertTriangle;
+      break;
     case 'offline':
       bg = 'var(--color-danger-bg)';
       color = 'var(--color-danger-text)';
       border = 'var(--color-danger-border)';
-      label = status === 'unknown' ? 'Unknown Beacon' : status;
+      label = language === 'ta' ? 'ஆஃப்லைன்' : 'Offline';
       IconComponent = AlertTriangle;
       break;
+    default:
+      label = String(status);
   }
 
   const isSmall = size === 'sm';
@@ -98,12 +150,12 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
         border: `1px solid ${border}`,
         borderRadius: 'var(--radius-full)',
         fontSize: isSmall ? '0.75rem' : '0.8125rem',
-        fontWeight: 600,
+        fontWeight: 700,
+        letterSpacing: '0.01em',
         whiteSpace: 'nowrap',
-        lineHeight: 1.2,
       }}
     >
-      {showIcon && <IconComponent size={isSmall ? 12 : 14} strokeWidth={2.4} />}
+      {showIcon && <IconComponent size={isSmall ? 13 : 15} strokeWidth={2.5} />}
       <span>{label}</span>
     </span>
   );

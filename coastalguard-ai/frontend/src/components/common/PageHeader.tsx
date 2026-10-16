@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 interface PageHeaderProps {
   title: string;
@@ -11,9 +12,12 @@ interface PageHeaderProps {
 export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   subtitle,
-  badge = 'Prototype — integration pending',
+  badge,
   action,
 }) => {
+  const { t } = useLanguage();
+  const displayBadge = badge !== undefined ? badge : t('common.prototypeBadge');
+
   return (
     <div
       style={{
@@ -39,10 +43,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           >
             {title}
           </h1>
-          {badge && (
+          {displayBadge && (
             <span className="badge-prototype">
               <Sparkles size={11} />
-              {badge}
+              {displayBadge}
             </span>
           )}
         </div>

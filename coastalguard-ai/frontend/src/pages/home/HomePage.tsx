@@ -17,45 +17,44 @@ import {
 } from 'lucide-react';
 import { Navbar } from '../../components/common/Navbar';
 import { Footer } from '../../components/common/Footer';
+import { useLanguage } from '../../i18n/LanguageContext';
 import styles from './HomePage.module.css';
 
 export const HomePage: React.FC = () => {
+  const { t } = useLanguage();
+
   const features = [
     {
       id: 'marine-weather',
-      title: 'Marine Weather & Conditions',
-      description:
-        'Understand marine conditions, weather trends, wind, waves, and forecasts with sector-wise telemetry.',
+      title: t('features.weatherTitle'),
+      description: t('features.weatherDesc'),
       image: '/images/feature-marine-weather.jpg',
       icon: <CloudSun size={24} />,
-      badge: 'Wave & Swell Intel',
+      badge: t('features.weatherBadge'),
     },
     {
       id: 'boat-coastal',
-      title: 'Boat & Coastal Monitoring',
-      description:
-        'View available boat location reports, regional information, and nearby ports and harbours with emergency radio channels.',
+      title: t('features.boatTitle'),
+      description: t('features.boatDesc'),
       image: '/images/feature-harbour-monitoring.jpg',
       icon: <Radio size={24} />,
-      badge: 'Harbour Navigation',
+      badge: t('features.boatBadge'),
     },
     {
       id: 'risk-alerts',
-      title: 'Risk Awareness & Safety Alerts',
-      description:
-        'Review marine risk levels, important warnings, and safety announcements categorized from Low to Extreme.',
+      title: t('features.riskTitle'),
+      description: t('features.riskDesc'),
       image: '/images/feature-storm-risk.jpg',
       icon: <AlertTriangle size={24} />,
-      badge: 'Danger Categorization',
+      badge: t('features.riskBadge'),
     },
     {
       id: 'ai-assistant',
-      title: 'AI-Powered Safety Assistance',
-      description:
-        'Understand safety information through a conversational assistant designed to explain warnings clearly in English and Tamil.',
+      title: t('features.aiTitle'),
+      description: t('features.aiDesc'),
       image: '/images/feature-fisherman-safety.jpg',
       icon: <BotMessageSquare size={24} />,
-      badge: 'Bilingual AI Support',
+      badge: t('features.aiBadge'),
     },
   ];
 
@@ -71,17 +70,18 @@ export const HomePage: React.FC = () => {
           {/* Badge */}
           <div className={styles.heroBadge}>
             <Waves size={16} />
-            <span>Next-Generation Marine Safety Intelligence</span>
+            <span>{t('hero.badge')}</span>
           </div>
 
           {/* Heading */}
           <h1 className={styles.heroHeadline}>
-            Safer Seas. <span className={styles.heroHighlight}>Smarter Decisions.</span>
+            {t('hero.headlinePart1')}{' '}
+            <span className={styles.heroHighlight}>{t('hero.headlineHighlight')}</span>
           </h1>
 
           {/* Supporting Text */}
           <p className={styles.heroSupportingText}>
-            CoastalGuard AI empowers fishermen and marine administrators with marine condition monitoring, regional risk awareness, safety alerts, and intelligent assistance for safer coastal operations.
+            {t('hero.supportingText')}
           </p>
 
           {/* Dual Action Buttons */}
@@ -91,7 +91,7 @@ export const HomePage: React.FC = () => {
               className={styles.heroBtnFisherman}
             >
               <Anchor size={20} />
-              <span>Fisherman Login</span>
+              <span>{t('hero.fishermanLogin')}</span>
             </Link>
 
             <Link
@@ -99,27 +99,27 @@ export const HomePage: React.FC = () => {
               className={styles.heroBtnAdmin}
             >
               <ShieldCheck size={20} />
-              <span>Admin Login</span>
+              <span>{t('hero.adminLogin')}</span>
             </Link>
           </div>
 
           {/* Quick Metrics Banner */}
           <div className={styles.metricsStrip}>
             <div className={styles.metricItem}>
-              <div className={styles.metricValue}>5 Sectors</div>
-              <div className={styles.metricLabel}>Coastal Regions Monitored</div>
+              <div className={styles.metricValue}>{t('hero.metricSectors')}</div>
+              <div className={styles.metricLabel}>{t('hero.metricSectorsLabel')}</div>
             </div>
             <div className={styles.metricItem}>
-              <div className={styles.metricValue}>24 / 7</div>
-              <div className={styles.metricLabel}>Marine Telemetry Updates</div>
+              <div className={styles.metricValue}>{t('hero.metricTelemetry')}</div>
+              <div className={styles.metricLabel}>{t('hero.metricTelemetryLabel')}</div>
             </div>
             <div className={styles.metricItem}>
-              <div className={styles.metricValue}>EN • TA</div>
-              <div className={styles.metricLabel}>Bilingual Advisory Support</div>
+              <div className={styles.metricValue}>{t('hero.metricBilingual')}</div>
+              <div className={styles.metricLabel}>{t('hero.metricBilingualLabel')}</div>
             </div>
             <div className={styles.metricItem}>
-              <div className={styles.metricValue}>VHF 16</div>
-              <div className={styles.metricLabel}>Distress Channel Ready</div>
+              <div className={styles.metricValue}>{t('hero.metricVhf')}</div>
+              <div className={styles.metricLabel}>{t('hero.metricVhfLabel')}</div>
             </div>
           </div>
         </div>
@@ -128,12 +128,12 @@ export const HomePage: React.FC = () => {
       {/* 2. Features Section */}
       <section className={styles.featureSection} id="features">
         <div className={styles.sectionHeader}>
-          <span className={styles.sectionCategory}>Comprehensive Capabilities</span>
+          <span className={styles.sectionCategory}>{t('features.category')}</span>
           <h2 className={styles.sectionTitle}>
-            Everything You Need for Safer Coastal Operations
+            {t('features.title')}
           </h2>
           <p className={styles.sectionSubtitle}>
-            Engineered to bridge meteorological telemetry, coastal authority oversight, and artisanal fishing community safety into an accessible, real-time command structure.
+            {t('features.subtitle')}
           </p>
         </div>
 
@@ -146,7 +146,6 @@ export const HomePage: React.FC = () => {
                   alt={feature.title}
                   className={styles.cardImage}
                   onError={(e) => {
-                    // Graceful fallback to dark ocean gradient if local asset path is interrupted
                     e.currentTarget.style.display = 'none';
                   }}
                 />
@@ -169,10 +168,10 @@ export const HomePage: React.FC = () => {
       {/* 3. How It Works Section */}
       <section className={styles.howSection} id="how-it-works">
         <div className={styles.sectionHeader}>
-          <span className={styles.sectionCategory}>Operational Workflow</span>
-          <h2 className={styles.sectionTitle}>How CoastalGuard AI Works</h2>
+          <span className={styles.sectionCategory}>{t('how.category')}</span>
+          <h2 className={styles.sectionTitle}>{t('how.title')}</h2>
           <p className={styles.sectionSubtitle}>
-            A streamlined three-step process connecting coastal communities with timely maritime intelligence.
+            {t('how.subtitle')}
           </p>
         </div>
 
@@ -182,9 +181,9 @@ export const HomePage: React.FC = () => {
             <div style={{ color: 'var(--color-ocean-blue)', marginBottom: '0.5rem' }}>
               <Compass size={28} />
             </div>
-            <h3 className={styles.stepTitle}>Choose Your Portal</h3>
+            <h3 className={styles.stepTitle}>{t('how.step1Title')}</h3>
             <p className={styles.stepText}>
-              Select either the <strong>Fisherman Login</strong> for day-to-day sea voyage assistance or the <strong>Admin Login</strong> for maritime command and sector-wide coordination.
+              {t('how.step1Text')}
             </p>
           </div>
 
@@ -193,9 +192,9 @@ export const HomePage: React.FC = () => {
             <div style={{ color: 'var(--color-teal)', marginBottom: '0.5rem' }}>
               <Radio size={28} />
             </div>
-            <h3 className={styles.stepTitle}>Explore Marine Information</h3>
+            <h3 className={styles.stepTitle}>{t('how.step2Title')}</h3>
             <p className={styles.stepText}>
-              Access real-time sector telemetry, inspect wave height and swell trends, check emergency harbour shelter capacities, and view coastal navigational maps.
+              {t('how.step2Text')}
             </p>
           </div>
 
@@ -204,9 +203,9 @@ export const HomePage: React.FC = () => {
             <div style={{ color: 'var(--color-ocean-blue)', marginBottom: '0.5rem' }}>
               <LifeBuoy size={28} />
             </div>
-            <h3 className={styles.stepTitle}>Stay Informed</h3>
+            <h3 className={styles.stepTitle}>{t('how.step3Title')}</h3>
             <p className={styles.stepText}>
-              Review officially broadcasted risk levels (Low to Extreme), get immediate returning-to-harbour advisories, and use the bilingual AI assistant to understand complex forecasts.
+              {t('how.step3Text')}
             </p>
           </div>
         </div>
@@ -216,12 +215,12 @@ export const HomePage: React.FC = () => {
       <section className={styles.aboutSection} id="about">
         <div className={styles.aboutContainer}>
           <div>
-            <span className={styles.sectionCategory}>Our Mission</span>
+            <span className={styles.sectionCategory}>{t('about.category')}</span>
             <h2 className={styles.aboutContentHeading}>
-              Technology with a Purpose
+              {t('about.title')}
             </h2>
             <p className={styles.aboutBodyText}>
-              CoastalGuard AI is a marine safety assistance platform designed to bring coastal information, risk awareness, and safety communication together in one place. By making marine information easier to understand and access, the platform aims to support informed decisions for fishermen and marine administrators.
+              {t('about.text')}
             </p>
 
             <div className={styles.aboutPillars}>
@@ -230,9 +229,9 @@ export const HomePage: React.FC = () => {
                   <Users size={20} />
                 </div>
                 <div>
-                  <h4 className={styles.pillarTitle}>Fishing Community Focused</h4>
+                  <h4 className={styles.pillarTitle}>{t('about.pillar1Title')}</h4>
                   <p className={styles.pillarDesc}>
-                    Designed with high-contrast, accessible layouts for fishermen operating small motorized and non-motorized crafts under bright sea glare.
+                    {t('about.pillar1Desc')}
                   </p>
                 </div>
               </div>
@@ -242,9 +241,9 @@ export const HomePage: React.FC = () => {
                   <CheckCircle2 size={20} />
                 </div>
                 <div>
-                  <h4 className={styles.pillarTitle}>Language Inclusive AI Assistance</h4>
+                  <h4 className={styles.pillarTitle}>{t('about.pillar2Title')}</h4>
                   <p className={styles.pillarDesc}>
-                    Translates technical barometric pressure, knot velocities, and wave period meters into plain Tamil and English actionable guidance.
+                    {t('about.pillar2Desc')}
                   </p>
                 </div>
               </div>
@@ -254,9 +253,9 @@ export const HomePage: React.FC = () => {
                   <ShieldCheck size={20} />
                 </div>
                 <div>
-                  <h4 className={styles.pillarTitle}>Preventive Risk Management</h4>
+                  <h4 className={styles.pillarTitle}>{t('about.pillar3Title')}</h4>
                   <p className={styles.pillarDesc}>
-                    Enables maritime authorities to issue immediate localized advisories and monitor fleet dispersal before cyclonic surges make sea conditions perilous.
+                    {t('about.pillar3Desc')}
                   </p>
                 </div>
               </div>
@@ -275,8 +274,8 @@ export const HomePage: React.FC = () => {
             <div className={styles.aboutBadgeOverlay}>
               <ShieldCheck size={28} color="#38bdf8" />
               <div>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Coastal Guard Maritime Support</div>
-                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Protecting coastal lives along the Coromandel coastline</div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{t('about.badgeTitle')}</div>
+                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{t('about.badgeSub')}</div>
               </div>
             </div>
           </div>
@@ -286,10 +285,10 @@ export const HomePage: React.FC = () => {
       {/* 5. Contact & Assistance Section */}
       <section className={styles.contactSection} id="contact">
         <div className={styles.sectionHeader} style={{ marginBottom: 'var(--space-8)' }}>
-          <span className={styles.sectionCategory}>Emergency Help & Channels</span>
-          <h2 className={styles.sectionTitle}>Coastal Assistance & Contact</h2>
+          <span className={styles.sectionCategory}>{t('contact.category')}</span>
+          <h2 className={styles.sectionTitle}>{t('contact.title')}</h2>
           <p className={styles.sectionSubtitle}>
-            Official emergency monitoring frequencies and maritime authority helplines.
+            {t('contact.subtitle')}
           </p>
         </div>
 
@@ -298,36 +297,36 @@ export const HomePage: React.FC = () => {
             <div className={styles.contactIconCircle}>
               <Radio size={24} />
             </div>
-            <h4 className={styles.contactCardTitle}>VHF Marine Distress</h4>
-            <div className={styles.contactCardValue}>Channel 16</div>
-            <div className={styles.contactCardSub}>156.800 MHz International Calling</div>
+            <h4 className={styles.contactCardTitle}>{t('contact.vhfTitle')}</h4>
+            <div className={styles.contactCardValue}>{t('contact.vhfValue')}</div>
+            <div className={styles.contactCardSub}>{t('contact.vhfSub')}</div>
           </div>
 
           <div className={styles.contactCard}>
             <div className={styles.contactIconCircle} style={{ backgroundColor: 'rgba(13, 148, 136, 0.1)', color: 'var(--color-teal)' }}>
               <Phone size={24} />
             </div>
-            <h4 className={styles.contactCardTitle}>Coast Guard Toll-Free</h4>
-            <div className={styles.contactCardValue} style={{ color: 'var(--color-teal)' }}>1554</div>
-            <div className={styles.contactCardSub}>24x7 Search & Rescue Coordination</div>
+            <h4 className={styles.contactCardTitle}>{t('contact.helplineTitle')}</h4>
+            <div className={styles.contactCardValue} style={{ color: 'var(--color-teal)' }}>{t('contact.helplineValue')}</div>
+            <div className={styles.contactCardSub}>{t('contact.helplineSub')}</div>
           </div>
 
           <div className={styles.contactCard}>
             <div className={styles.contactIconCircle}>
               <ShieldCheck size={24} />
             </div>
-            <h4 className={styles.contactCardTitle}>Disaster Management</h4>
-            <div className={styles.contactCardValue}>1077</div>
-            <div className={styles.contactCardSub}>District Coastal Emergency Operations</div>
+            <h4 className={styles.contactCardTitle}>{t('contact.disasterTitle')}</h4>
+            <div className={styles.contactCardValue}>{t('contact.disasterValue')}</div>
+            <div className={styles.contactCardSub}>{t('contact.disasterSub')}</div>
           </div>
 
           <div className={styles.contactCard}>
             <div className={styles.contactIconCircle} style={{ backgroundColor: 'rgba(13, 148, 136, 0.1)', color: 'var(--color-teal)' }}>
               <LifeBuoy size={24} />
             </div>
-            <h4 className={styles.contactCardTitle}>INCOIS Ocean Forecast</h4>
-            <div className={styles.contactCardValue} style={{ color: 'var(--color-teal)' }}>040-23895000</div>
-            <div className={styles.contactCardSub}>Marine Meteorological Telemetry Center</div>
+            <h4 className={styles.contactCardTitle}>{t('contact.incoisTitle')}</h4>
+            <div className={styles.contactCardValue} style={{ color: 'var(--color-teal)' }}>{t('contact.incoisValue')}</div>
+            <div className={styles.contactCardSub}>{t('contact.incoisSub')}</div>
           </div>
         </div>
       </section>
@@ -336,10 +335,10 @@ export const HomePage: React.FC = () => {
       <section className={styles.finalCtaSection} id="choose-portal">
         <div className={styles.ctaContainer}>
           <h2 className={styles.ctaTitle}>
-            Your Next Step Toward Safer Seas
+            {t('cta.title')}
           </h2>
           <p className={styles.ctaSupporting}>
-            Access the information and tools designed for your role in coastal safety.
+            {t('cta.subtitle')}
           </p>
 
           <div className={styles.ctaButtons}>
@@ -348,7 +347,7 @@ export const HomePage: React.FC = () => {
               className={styles.heroBtnFisherman}
             >
               <Anchor size={20} />
-              <span>Fisherman Login</span>
+              <span>{t('cta.fishermanBtn')}</span>
               <ArrowRight size={18} />
             </Link>
 
@@ -357,7 +356,7 @@ export const HomePage: React.FC = () => {
               className={styles.heroBtnAdmin}
             >
               <ShieldCheck size={20} />
-              <span>Admin Login</span>
+              <span>{t('cta.adminBtn')}</span>
               <ArrowRight size={18} />
             </Link>
           </div>
@@ -368,3 +367,4 @@ export const HomePage: React.FC = () => {
     </div>
   );
 };
+export default HomePage;

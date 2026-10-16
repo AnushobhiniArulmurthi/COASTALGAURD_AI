@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { ArrowLeft, ShieldAlert } from 'lucide-react';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 // Pages
 import { HomePage } from '../../pages/home/HomePage';
@@ -22,6 +23,8 @@ import { MyProfile } from '../../pages/fisherman/modules/MyProfile';
 
 // 404 Not Found Fallback Component
 const NotFoundPage: React.FC = () => {
+  const { t } = useLanguage();
+
   return (
     <div
       style={{
@@ -61,13 +64,13 @@ const NotFoundPage: React.FC = () => {
 
         <h1
           style={{
-            fontSize: '2rem',
+            fontSize: '1.75rem',
             fontWeight: 800,
             color: 'var(--color-navy-primary)',
             marginBottom: '0.5rem',
           }}
         >
-          404 — Sea Waypoint Not Found
+          {t('common.notFoundTitle')}
         </h1>
 
         <p
@@ -78,13 +81,13 @@ const NotFoundPage: React.FC = () => {
             lineHeight: 1.6,
           }}
         >
-          The coordinates or route you navigated to does not exist in CoastalGuard AI. Please return to the harbor or select an authorized portal.
+          {t('common.notFoundDesc')}
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
           <Link to="/" className="btn btn-primary" style={{ justifyContent: 'center' }}>
             <ArrowLeft size={16} />
-            <span>Return to Homepage</span>
+            <span>{t('common.returnHome')}</span>
           </Link>
         </div>
       </div>

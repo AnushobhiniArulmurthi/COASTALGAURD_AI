@@ -9,9 +9,11 @@ import { AdminLayout } from '../../../components/layout/AdminLayout';
 import { PageHeader } from '../../../components/common/PageHeader';
 import { StatusBadge } from '../../../components/common/StatusBadge';
 import { mockUsers as initialUsers } from '../../../data/mockData';
+import { useLanguage } from '../../../i18n/LanguageContext';
 import type { FishermanUser } from '../../../types';
 
 export const UserManagement: React.FC = () => {
+  const { t, language } = useLanguage();
   const [users, setUsers] = useState<FishermanUser[]>(initialUsers);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -43,9 +45,9 @@ export const UserManagement: React.FC = () => {
   return (
     <AdminLayout>
       <PageHeader
-        title="User Management"
-        subtitle="Search, filter, and inspect registered fisherman profiles, fleet allocations, and account credentials."
-        badge="Prototype — integration pending"
+        title={t('admin.userTitle')}
+        subtitle={t('admin.userSubtitle')}
+        badge={t('common.prototypeBadge')}
       />
 
       {/* Prototype Disclaimer */}
@@ -65,7 +67,10 @@ export const UserManagement: React.FC = () => {
       >
         <AlertCircle size={18} style={{ flexShrink: 0 }} />
         <div>
-          <strong>Privacy & Simulation Note:</strong> Fictional demonstration user records. No genuine personal identifiables or governmental identity numbers are held in this prototype.
+          <strong>{language === 'ta' ? 'மாதிரி பயனர் பதிவுகள்:' : 'Privacy & Simulation Note:'}</strong>{' '}
+          {language === 'ta'
+            ? 'சோதனை நோக்கத்திற்கான மாதிரி பயனர் பதிவுகள். இந்த முன்மாதிரியில் உண்மையான தனிநபர் அடையாளங்கள் அல்லது அரசு எண்கள் சேமிக்கப்படவில்லை.'
+            : 'Fictional demonstration user records. No genuine personal identifiables or governmental identity numbers are held in this prototype.'}
         </div>
       </div>
 
@@ -84,10 +89,12 @@ export const UserManagement: React.FC = () => {
         >
           <div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-              Registered Fishermen Directory ({users.length} Records)
+              {t('admin.directory')} ({users.length})
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-              Filter by harbour location or search by name / vessel registration
+              {language === 'ta'
+                ? 'துறைமுகம் அல்லது மீனவர் பெயர் / படகு பதிவெண் மூலம் தேடலாம்'
+                : 'Filter by harbour location or search by name / vessel registration'}
             </p>
           </div>
 
@@ -96,7 +103,7 @@ export const UserManagement: React.FC = () => {
               <Search size={16} style={{ position: 'absolute', left: 10, top: 10, color: 'var(--color-text-muted)' }} />
               <input
                 type="text"
-                placeholder="Search user, mobile, harbour..."
+                placeholder={language === 'ta' ? 'பயனர், மொபைல், துறைமுகம் தேடவும்...' : 'Search user, mobile, harbour...'}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
@@ -121,10 +128,9 @@ export const UserManagement: React.FC = () => {
                 color: 'var(--color-navy-primary)',
               }}
             >
-              <option value="all">All Statuses</option>
-              <option value="active">Active Only</option>
-              <option value="inactive">Inactive Only</option>
-              <option value="suspended">Suspended</option>
+              <option value="all">{t('admin.allStatuses')}</option>
+              <option value="active">{t('admin.active')}</option>
+              <option value="inactive">{t('admin.inactive')}</option>
             </select>
           </div>
         </div>
@@ -134,13 +140,13 @@ export const UserManagement: React.FC = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
             <thead>
               <tr style={{ backgroundColor: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border-light)' }}>
-                <th style={{ padding: '0.75rem 1rem' }}>Fisherman Name</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Contact Info</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Home Harbour</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Vessel & Reg Number</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Language</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Account Status</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Actions</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.name')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.contact')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.homeHarbour')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.vessel')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.preferredLang')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.signalStatus')}</th>
+                <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>{t('admin.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -160,7 +166,7 @@ export const UserManagement: React.FC = () => {
                   </td>
                   <td style={{ padding: '0.85rem 1rem' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, padding: '0.15rem 0.45rem', backgroundColor: 'var(--color-bg-alt)', borderRadius: 'var(--radius-sm)' }}>
-                      {user.preferredLanguage === 'ta' ? 'Tamil (தமிழ்)' : 'English'}
+                      {user.preferredLanguage === 'ta' ? 'தமிழ்' : 'English'}
                     </span>
                   </td>
                   <td style={{ padding: '0.85rem 1rem' }}>
@@ -175,7 +181,7 @@ export const UserManagement: React.FC = () => {
                         title="View Details"
                       >
                         <Eye size={13} />
-                        <span>Details</span>
+                        <span>{language === 'ta' ? 'விவரம்' : 'Details'}</span>
                       </button>
 
                       <button
@@ -188,7 +194,7 @@ export const UserManagement: React.FC = () => {
                           color: user.accountStatus === 'active' ? '#991b1b' : '#166534',
                         }}
                       >
-                        {user.accountStatus === 'active' ? 'Deactivate' : 'Activate'}
+                        {user.accountStatus === 'active' ? t('admin.toggleActive') : t('admin.toggleInactive')}
                       </button>
                     </div>
                   </td>
@@ -247,38 +253,38 @@ export const UserManagement: React.FC = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)', fontSize: '0.9rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Contact Phone:</span>
+                <span style={{ color: 'var(--color-text-secondary)' }}>{t('admin.contact')}:</span>
                 <span style={{ fontWeight: 600 }}>{selectedUser.contact}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Home Fishing Harbour:</span>
+                <span style={{ color: 'var(--color-text-secondary)' }}>{t('admin.homeHarbour')}:</span>
                 <span style={{ fontWeight: 600 }}>{selectedUser.homeHarbour}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Vessel Name:</span>
+                <span style={{ color: 'var(--color-text-secondary)' }}>{t('fisherman.boatNameLabel')}:</span>
                 <span style={{ fontWeight: 600, color: 'var(--color-ocean-blue)' }}>{selectedUser.vesselName}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Boat Reg No:</span>
+                <span style={{ color: 'var(--color-text-secondary)' }}>{t('fisherman.regNumberLabel')}:</span>
                 <span style={{ fontWeight: 600 }}>{selectedUser.registrationNo}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Preferred Portal Language:</span>
-                <span style={{ fontWeight: 600 }}>{selectedUser.preferredLanguage === 'ta' ? 'Tamil (தமிழ்)' : 'English'}</span>
+                <span style={{ color: 'var(--color-text-secondary)' }}>{t('fisherman.languagePref')}:</span>
+                <span style={{ fontWeight: 600 }}>{selectedUser.preferredLanguage === 'ta' ? 'தமிழ் (Tamil)' : 'English'}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Joined Date:</span>
+                <span style={{ color: 'var(--color-text-secondary)' }}>{language === 'ta' ? 'சேர்ந்த தேதி:' : 'Joined Date:'}</span>
                 <span style={{ fontWeight: 600 }}>{selectedUser.joinedDate}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Account Status:</span>
+                <span style={{ color: 'var(--color-text-secondary)' }}>{t('admin.signalStatus')}:</span>
                 <StatusBadge status={selectedUser.accountStatus} size="sm" />
               </div>
             </div>
 
             <div style={{ marginTop: 'var(--space-6)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-2)' }}>
               <button onClick={() => setSelectedUser(null)} className="btn btn-outline btn-sm">
-                Close
+                {t('nav.close')}
               </button>
             </div>
           </div>
@@ -287,3 +293,4 @@ export const UserManagement: React.FC = () => {
     </AdminLayout>
   );
 };
+export default UserManagement;

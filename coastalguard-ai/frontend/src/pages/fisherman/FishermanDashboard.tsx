@@ -16,9 +16,11 @@ import { PageHeader } from '../../components/common/PageHeader';
 import { StatCard } from '../../components/common/StatCard';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { mockMarineConditions, mockHarbours } from '../../data/mockData';
+import { useLanguage } from '../../i18n/LanguageContext';
 import styles from './FishermanDashboard.module.css';
 
 export const FishermanDashboard: React.FC = () => {
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [selectedSectorKey, setSelectedSectorKey] = useState('gulf-of-mannar');
 
@@ -28,13 +30,13 @@ export const FishermanDashboard: React.FC = () => {
   return (
     <FishermanLayout>
       <PageHeader
-        title="Welcome, Fisherman (வணக்கம் மீனவரே)"
-        subtitle="Live safety cockpit, immediate wave conditions, emergency harbour waypoints, and bilingual advisories."
-        badge="Demonstration Mode"
+        title={t('fisherman.welcome')}
+        subtitle={t('fisherman.welcomeSub')}
+        badge={t('common.demoBadge')}
         action={
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)' }}>
-              Coastal Sector:
+              {t('admin.sector')}:
             </span>
             <select
               value={selectedSectorKey}
@@ -67,7 +69,7 @@ export const FishermanDashboard: React.FC = () => {
               width: 44,
               height: 44,
               borderRadius: 'var(--radius-md)',
-              backgroundColor: '#f59e0b',
+              backgroundColor: condition.riskLevel === 'extreme' ? '#dc2626' : '#f59e0b',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
@@ -80,27 +82,26 @@ export const FishermanDashboard: React.FC = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
               <span style={{ fontSize: '1rem', fontWeight: 800, color: '#92400e' }}>
-                Safety Status: Caution in {condition.regionName}
+                {condition.riskLevel === 'extreme' || condition.riskLevel === 'high'
+                  ? t('fisherman.safetyCaution', { region: condition.regionName })
+                  : t('fisherman.safetySafe', { region: condition.regionName })}
               </span>
               <StatusBadge status={condition.riskLevel} size="sm" />
             </div>
             <p style={{ fontSize: '0.875rem', color: '#78350f', lineHeight: 1.5, maxWidth: '800px' }}>
-              <strong>Advisory:</strong> {condition.forecastSummary}
+              <strong>{t('fisherman.safetyAdvisory')}</strong> {condition.forecastSummary}
             </p>
-            <div style={{ fontSize: '0.8rem', color: '#b45309', marginTop: '0.25rem', fontStyle: 'italic' }}>
-              தமிழ் வழிகாட்டுதல்: பலத்த காற்று மற்றும் அலை வீசுவதால் ஆழ்கடலுக்கு செல்வதை தவிர்க்கவும்.
-            </div>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
           <Link to="/fisherman/safety-assistant" className="btn btn-accent btn-sm">
             <BotMessageSquare size={16} />
-            <span>Ask AI Assistant</span>
+            <span>{t('fisherman.askAiBtn')}</span>
           </Link>
           <Link to="/fisherman/marine-map" className="btn btn-outline btn-sm">
             <MapPin size={16} />
-            <span>Open Coastal Map</span>
+            <span>{t('fisherman.openMapBtn')}</span>
           </Link>
         </div>
       </div>
@@ -108,40 +109,40 @@ export const FishermanDashboard: React.FC = () => {
       {/* 4 Marine Conditions Summary Cards */}
       <div className={styles.dashboardGrid}>
         <StatCard
-          title="Surface Wind Speed"
+          title={t('admin.wind')}
           value={condition.windSpeedKnots}
           unit="knots"
-          subtitle={`Direction: ${condition.windDirection}`}
+          subtitle={`${language === 'ta' ? 'திசை' : 'Direction'}: ${condition.windDirection}`}
           icon={<Wind size={22} />}
           accentColor="var(--color-ocean-blue)"
-          trend={{ value: 'Sample sync', isPositive: true }}
+          trend={{ value: language === 'ta' ? 'நேரலை' : 'Sample sync', isPositive: true }}
           onClick={() => navigate('/fisherman/marine-map')}
         />
 
         <StatCard
-          title="Significant Wave Height"
+          title={t('admin.wave')}
           value={condition.waveHeightMeters}
           unit="meters"
-          subtitle={condition.waveHeightMeters > 3 ? 'Rough seas (கொந்தளிப்பு)' : 'Moderate swell (மிதமான அலை)'}
+          subtitle={condition.waveHeightMeters > 3 ? (language === 'ta' ? 'கொந்தளிப்பான கடல்' : 'Rough seas') : (language === 'ta' ? 'மிதமான அலை' : 'Moderate swell')}
           icon={<Waves size={22} />}
           accentColor={condition.waveHeightMeters > 3 ? 'var(--color-danger)' : 'var(--color-teal)'}
           onClick={() => navigate('/fisherman/marine-map')}
         />
 
         <StatCard
-          title="Swell Period & Tide"
+          title={t('admin.swellPeriod')}
           value={condition.swellPeriodSeconds}
           unit="seconds"
-          subtitle="Tide: Flood Tide (+0.8m)"
+          subtitle={language === 'ta' ? 'அலைவு காலம்' : 'Swell Period'}
           icon={<Clock size={22} />}
           accentColor="var(--color-navy-primary)"
         />
 
         <StatCard
-          title="Atmospheric Visibility"
+          title={language === 'ta' ? 'பார்வைத் தூரம்' : 'Visibility'}
           value={condition.visibilityKm}
           unit="km"
-          subtitle="Daylight clear navigation"
+          subtitle={language === 'ta' ? 'தெளிவான கடல் பார்வை' : 'Daylight clear navigation'}
           icon={<Eye size={22} />}
           accentColor="#0284c7"
         />
@@ -154,14 +155,16 @@ export const FishermanDashboard: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
             <div>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-                Nearby Harbours & Emergency Shelters
+                {t('fisherman.nearbyPorts')}
               </h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                Emergency berthing, radio call signs, and entry clearances
+                {language === 'ta'
+                  ? 'அவசர கால தங்குமிடம், VHF வானொலி அலைவரிசைகள்'
+                  : 'Emergency berthing, radio call signs, and entry clearances'}
               </p>
             </div>
             <Link to="/fisherman/marine-map" className="btn btn-outline btn-sm">
-              <span>View On Map</span>
+              <span>{language === 'ta' ? 'வரைபடத்தில் பார்க்க' : 'View On Map'}</span>
               <ArrowRight size={14} />
             </Link>
           </div>
@@ -187,10 +190,10 @@ export const FishermanDashboard: React.FC = () => {
                   </div>
                   <div>
                     <div style={{ fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-                      {port.name}
+                      {language === 'ta' && port.tamilName ? port.tamilName : port.name}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-teal)', fontWeight: 600 }}>
-                      {port.tamilName}
+                      {port.district}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
                       Radio: {port.vhfEmergencyChannel} • Depth: {port.depthMeters}m
@@ -201,7 +204,7 @@ export const FishermanDashboard: React.FC = () => {
                 <div style={{ textAlign: 'right' }}>
                   <StatusBadge status={port.status} size="sm" />
                   <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
-                    Cap: {port.shelterCapacityBoats} craft
+                    Cap: {port.shelterCapacityBoats} {t('fisherman.crafts')}
                   </div>
                 </div>
               </div>
@@ -215,11 +218,11 @@ export const FishermanDashboard: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: 'var(--space-2)' }}>
               <BotMessageSquare size={22} color="var(--color-teal)" />
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-                AI Safety Assistant Demo
+                {t('fisherman.aiTeaserTitle')}
               </h3>
             </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
-              Have questions about weather conditions or fishing bans? Ask in plain English or Tamil.
+              {t('fisherman.aiTeaserSub')}
             </p>
 
             <div
@@ -232,13 +235,13 @@ export const FishermanDashboard: React.FC = () => {
               }}
             >
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-teal)', textTransform: 'uppercase', marginBottom: '4px' }}>
-                Sample Question (கேள்வி):
+                {t('fisherman.sampleQTitle')}
               </div>
               <div style={{ fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--color-navy-primary)', marginBottom: '8px' }}>
-                "Can I venture out for tuna fishing from Rameswaram tonight?"
+                {t('fisherman.sampleQ')}
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', borderTop: '1px dashed var(--color-border-subtle)', paddingTop: '6px' }}>
-                <strong>AI Answer:</strong> Strong 28kt winds in Gulf of Mannar with 3.2m swells. Small craft operations advised to stay moored.
+                <strong>AI Answer:</strong> {t('fisherman.sampleA')}
               </div>
             </div>
           </div>
@@ -246,11 +249,11 @@ export const FishermanDashboard: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
             <Link to="/fisherman/safety-assistant" className="btn btn-accent" style={{ justifyContent: 'center' }}>
               <BotMessageSquare size={16} />
-              <span>Launch AI Safety Assistant</span>
+              <span>{t('fisherman.launchAi')}</span>
             </Link>
             <Link to="/fisherman/marine-map" className="btn btn-outline" style={{ justifyContent: 'center' }}>
               <MapPin size={16} />
-              <span>Full Marine & Harbour Map</span>
+              <span>{t('fisherman.fullMap')}</span>
             </Link>
           </div>
         </div>
@@ -258,3 +261,4 @@ export const FishermanDashboard: React.FC = () => {
     </FishermanLayout>
   );
 };
+export default FishermanDashboard;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Compass,
   MapPin,
@@ -11,44 +11,49 @@ import {
   Bell,
   Anchor,
   ChevronRight,
-  ShieldAlert
+  LifeBuoy
 } from 'lucide-react';
 import { Logo } from '../common/Logo';
+import { LanguageSelector } from '../common/LanguageSelector';
+import { useLanguage } from '../../i18n/LanguageContext';
+import { SosEmergencyModal } from '../emergency/SosEmergencyModal';
 
 interface FishermanLayoutProps {
   children: React.ReactNode;
 }
 
 export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) => {
+  const { t, language } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [sosModalOpen, setSosModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const navItems = [
     {
-      title: 'Dashboard',
+      title: t('nav.dashboard'),
       path: '/fisherman/dashboard',
       icon: <Compass size={20} />,
-      tamil: 'முகப்பு பலகை',
+      sub: language === 'ta' ? 'முகப்பு பலகை' : 'Cockpit Overview',
     },
     {
-      title: 'Marine Conditions & Map',
+      title: t('nav.marineMap'),
       path: '/fisherman/marine-map',
       icon: <MapPin size={20} />,
-      tamil: 'கடல் வரைபடம் & வானிலை',
+      sub: language === 'ta' ? 'கடல் வரைபடம் & வானிலை' : 'Nautical Charts',
     },
     {
-      title: 'Safety Alerts & AI Assistant',
+      title: t('nav.safetyAssistant'),
       path: '/fisherman/safety-assistant',
       icon: <BotMessageSquare size={20} />,
-      tamil: 'பாதுகாப்பு எச்சரிக்கை & AI',
+      sub: language === 'ta' ? 'பாதுகாப்பு & AI வழிகாட்டி' : 'Alerts & AI Guidance',
     },
     {
-      title: 'My Profile',
+      title: t('nav.myProfile'),
       path: '/fisherman/profile',
       icon: <User size={20} />,
-      tamil: 'எனது சுயவிவரம்',
+      sub: language === 'ta' ? 'எனது சுயவிவரம்' : 'Vessel Registration',
     },
   ];
 
@@ -58,7 +63,7 @@ export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) =>
 
   const getPageTitle = () => {
     const current = navItems.find((item) => item.path === location.pathname);
-    return current ? current.title : 'Fisherman Safety Console';
+    return current ? current.title : (language === 'ta' ? 'மீனவர் பாதுகாப்பு பலகை' : 'Fisherman Safety Console');
   };
 
   return (
@@ -143,36 +148,36 @@ export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) =>
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>
-              Fisherman Safety Portal
+              {t('auth.fishermanTitle')}
             </div>
             <div style={{ fontSize: '0.7rem', color: '#2dd4bf' }}>
-              மீனவர் பாதுகாப்பு தளம்
+              {language === 'ta' ? 'கடல் பாதுகாப்பு சேவைகள்' : 'Sea Safety Services'}
             </div>
           </div>
         </div>
 
-        {/* Navigation Items */}
+        {/* Navigation Links */}
         <nav
           style={{
-            padding: 'var(--space-4) var(--space-3)',
             flex: 1,
-            overflowY: 'auto',
+            padding: 'var(--space-4) var(--space-3)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '0.35rem',
+            gap: 'var(--space-1)',
+            overflowY: 'auto',
           }}
         >
           <div
             style={{
-              padding: '0 0.5rem 0.5rem',
+              padding: '0 var(--space-3) var(--space-2)',
               fontSize: '0.7rem',
               fontWeight: 700,
               textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: '#7ba1c2',
+              color: '#64748b',
+              letterSpacing: '0.05em',
             }}
           >
-            Fisherman Modules
+            {t('nav.safetyServices')}
           </div>
 
           {navItems.map((item) => (
@@ -180,24 +185,28 @@ export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) =>
               key={item.path}
               to={item.path}
               onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `fisherman-nav-item ${isActive ? 'active' : ''}`
+              }
               style={({ isActive }) => ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '0.65rem 0.85rem',
                 borderRadius: 'var(--radius-md)',
-                fontSize: '0.9rem',
-                fontWeight: isActive ? 600 : 500,
-                color: isActive ? '#ffffff' : '#94b5d4',
+                color: isActive ? '#ffffff' : '#94a3b8',
                 backgroundColor: isActive ? 'var(--color-teal)' : 'transparent',
+                fontWeight: isActive ? 600 : 500,
+                fontSize: '0.9rem',
                 transition: 'all var(--transition-fast)',
+                textDecoration: 'none',
               })}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 {item.icon}
-                <div>
-                  <div>{item.title}</div>
-                  <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{item.tamil}</div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>{item.title}</span>
+                  <span style={{ fontSize: '0.7rem', opacity: 0.75 }}>{item.sub}</span>
                 </div>
               </div>
               <ChevronRight size={14} opacity={0.6} />
@@ -205,48 +214,96 @@ export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) =>
           ))}
         </nav>
 
-        {/* Sidebar Footer with Logout & User Info */}
+        {/* Sidebar Footer with SOS, Fisherman Info and Logout */}
         <div
           style={{
-            padding: 'var(--space-4) var(--space-5)',
+            padding: '0.65rem 0.85rem',
             borderTop: '1px solid #133959',
-            backgroundColor: 'rgba(0, 0, 0, 0.25)',
+            backgroundColor: 'rgba(0, 0, 0, 0.35)',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
+          {/* 1. Red SOS — EMERGENCY Button (Above Fisherman Profile) */}
+          <button
+            id="sidebar-sos-button"
+            onClick={() => setSosModalOpen(true)}
+            type="button"
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              padding: '0.65rem 0.75rem',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: '#dc2626',
+              color: '#ffffff',
+              border: '1.5px solid #ef4444',
+              fontSize: '0.85rem',
+              fontWeight: 800,
+              letterSpacing: '0.04em',
+              cursor: 'pointer',
+              boxShadow: '0 2px 10px rgba(220, 38, 38, 0.4)',
+              transition: 'all var(--transition-fast)',
+              margin: '0 0 2px 0', // 2px gap to profile below (fulfills 0-4px spacing)
+            }}
+            className="sidebar-sos-btn"
+            aria-label="SOS Emergency Alert"
+          >
+            <LifeBuoy size={18} />
+            <span>{t('sos.buttonText')}</span>
+          </button>
+
+          {/* 2. Fisherman profile details directly below SOS button (2px vertical gap) */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.65rem',
-              marginBottom: 'var(--space-3)',
+              justifyContent: 'space-between',
+              padding: '3px 2px',
+              margin: '0 0 4px 0',
             }}
           >
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-ocean-blue)',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-              }}
-            >
-              MS
-            </div>
-            <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff' }}>
-                M. Selvam (செல்வம்)
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-ocean-blue)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  flexShrink: 0,
+                }}
+              >
+                MS
               </div>
-              <div style={{ fontSize: '0.7rem', color: '#94b5d4' }}>
-                Boat: Kadalarasan (Rameswaram)
+              <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                <div
+                  style={{
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: '#ffffff',
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                  }}
+                >
+                  M. Selvam (செல்வம்)
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                  Rameswaram • IND-TN-10
+                </div>
               </div>
             </div>
           </div>
 
+          {/* 3. Logout to Home button below profile */}
           <button
             onClick={handleLogout}
             style={{
@@ -255,18 +312,19 @@ export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) =>
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.5rem',
-              padding: '0.55rem',
+              padding: '0.5rem',
               borderRadius: 'var(--radius-md)',
-              backgroundColor: 'rgba(239, 68, 68, 0.15)',
+              backgroundColor: 'rgba(239, 68, 68, 0.12)',
               color: '#f87171',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              fontSize: '0.85rem',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              fontSize: '0.8rem',
               fontWeight: 600,
+              cursor: 'pointer',
               transition: 'background-color var(--transition-fast)',
             }}
           >
-            <LogOut size={16} />
-            <span>Logout to Home</span>
+            <LogOut size={15} />
+            <span>{t('nav.logout')}</span>
           </button>
         </div>
       </aside>
@@ -321,26 +379,9 @@ export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) =>
             </div>
           </div>
 
-          {/* Right Header Badges & Actions */}
+          {/* Right Header: Language Selector + Notifications */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-            <span
-              style={{
-                display: 'none',
-                alignItems: 'center',
-                gap: '0.35rem',
-                backgroundColor: 'var(--color-warning-bg)',
-                color: 'var(--color-warning-text)',
-                border: '1px solid var(--color-warning-border)',
-                padding: '0.2rem 0.6rem',
-                borderRadius: 'var(--radius-full)',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-              }}
-              className="sea-status-badge"
-            >
-              <ShieldAlert size={13} />
-              <span>Swell Alert Active</span>
-            </span>
+            <LanguageSelector />
 
             {/* Notification Bell */}
             <div style={{ position: 'relative' }}>
@@ -356,8 +397,9 @@ export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) =>
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  cursor: 'pointer',
                 }}
-                title="Emergency alerts"
+                title={t('nav.activeAlerts')}
               >
                 <Bell size={18} />
                 <span
@@ -368,7 +410,7 @@ export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) =>
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    backgroundColor: 'var(--color-danger)',
+                    backgroundColor: 'var(--color-warning)',
                   }}
                 />
               </button>
@@ -390,60 +432,36 @@ export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) =>
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
                     <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-navy-primary)' }}>
-                      Marine Warnings (மழை எச்சரிக்கை)
+                      {t('nav.activeAlerts')} (2)
                     </span>
                     <button
                       onClick={() => setShowNotifications(false)}
-                      style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}
+                      style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', cursor: 'pointer' }}
                     >
-                      Close
+                      {t('nav.close')}
                     </button>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8rem' }}>
-                    <div style={{ padding: '0.5rem', backgroundColor: 'var(--color-danger-bg)', borderRadius: 'var(--radius-sm)', color: 'var(--color-danger-text)' }}>
-                      ⚠️ <strong>Gulf of Mannar:</strong> Gale winds 35 knots. நாட்டுப்படகுகள் கடலுக்குச் செல்ல வேண்டாம்.
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)', fontSize: '0.8rem' }}>
+                    <div style={{ padding: '0.5rem', backgroundColor: '#fffbeb', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid #f59e0b' }}>
+                      <div style={{ fontWeight: 600, color: '#92400e' }}>
+                        {language === 'ta' ? 'அதிவேக காற்று: மன்னார் வளைகுடா' : 'High Swell: Gulf of Mannar'}
+                      </div>
+                      <div style={{ color: '#b45309', fontSize: '0.75rem' }}>
+                        {language === 'ta' ? '3.2 மீ அலைகள், காற்றின் வேகம் 28 நாட்ஸ்' : '3.2m swells, wind gusting 28 knots'}
+                      </div>
                     </div>
-                    <div style={{ padding: '0.5rem', backgroundColor: 'var(--color-info-bg)', borderRadius: 'var(--radius-sm)', color: 'var(--color-info-text)' }}>
-                      ℹ️ <strong>Rameswaram Harbour:</strong> Shelter available at Pier 3.
+                    <div style={{ padding: '0.5rem', backgroundColor: '#f0fdf4', borderRadius: 'var(--radius-sm)', borderLeft: '3px solid #10b981' }}>
+                      <div style={{ fontWeight: 600, color: '#166534' }}>
+                        {language === 'ta' ? 'பாதுகாப்பு மையம்: இராமேஸ்வரம்' : 'Safe Haven: Rameswaram Port'}
+                      </div>
+                      <div style={{ color: '#15803d', fontSize: '0.75rem' }}>
+                        {language === 'ta' ? 'அனைத்து படகுகளுக்கும் திறக்கப்பட்டுள்ளது (VHF 16)' : 'Open for anchorage (VHF 16)'}
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
             </div>
-
-            {/* Profile Avatar & Name */}
-            <Link
-              to="/fisherman/profile"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.3rem 0.6rem',
-                borderRadius: 'var(--radius-full)',
-                backgroundColor: 'var(--color-bg-alt)',
-                border: '1px solid var(--color-border-light)',
-              }}
-            >
-              <div
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: '50%',
-                  backgroundColor: 'var(--color-teal)',
-                  color: '#ffffff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                }}
-              >
-                MS
-              </div>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)' }} className="fisherman-name">
-                M. Selvam
-              </span>
-            </Link>
           </div>
         </header>
 
@@ -461,38 +479,40 @@ export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) =>
         </main>
       </div>
 
+      {/* Full-Screen Emergency SOS Confirmation & 5-Second Countdown Overlay */}
+      <SosEmergencyModal isOpen={sosModalOpen} onClose={() => setSosModalOpen(false)} />
+
       {/* Responsive layout styles */}
       <style>{`
-        @media (min-width: 1024px) {
-          .fisherman-sidebar {
-            position: fixed !important;
-            transform: translateX(0) !important;
-          }
-          .fisherman-main-wrapper {
-            margin-left: 280px !important;
-          }
-          .fisherman-menu-toggle {
-            display: none !important;
-          }
-          .sidebar-close-btn {
-            display: none !important;
-          }
+        .fisherman-main-wrapper {
+          margin-left: 280px;
+        }
+        .fisherman-menu-toggle {
+          display: none !important;
+        }
+        .sidebar-close-btn {
+          display: none !important;
+        }
+        @media (min-width: 900px) {
           .sea-status-badge {
             display: inline-flex !important;
           }
         }
-        @media (max-width: 1023px) {
+        @media (max-width: 1024px) {
           .fisherman-sidebar {
             transform: translateX(-100%);
           }
           .fisherman-sidebar.open {
-            transform: translateX(0) !important;
+            transform: translateX(0);
           }
           .fisherman-main-wrapper {
-            margin-left: 0 !important;
+            margin-left: 0;
           }
-          .fisherman-name {
-            display: none;
+          .fisherman-menu-toggle {
+            display: flex !important;
+          }
+          .sidebar-close-btn {
+            display: block !important;
           }
         }
       `}</style>

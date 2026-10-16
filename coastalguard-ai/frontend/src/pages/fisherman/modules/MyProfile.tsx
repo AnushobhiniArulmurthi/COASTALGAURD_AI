@@ -12,8 +12,10 @@ import {
 import { FishermanLayout } from '../../../components/layout/FishermanLayout';
 import { PageHeader } from '../../../components/common/PageHeader';
 import { StatusBadge } from '../../../components/common/StatusBadge';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 export const MyProfile: React.FC = () => {
+  const { t, language, setLanguage } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [saveToast, setSaveToast] = useState(false);
 
@@ -22,7 +24,6 @@ export const MyProfile: React.FC = () => {
   const [contact, setContact] = useState('+91 98401 23456');
   const [email, setEmail] = useState('selvam.fisher@demo-mail.com');
   const [homeHarbour, setHomeHarbour] = useState('Rameswaram Fishing Harbour');
-  const [preferredLanguage, setPreferredLanguage] = useState<'ta' | 'en'>('ta');
   const [vesselName, setVesselName] = useState('Kadalarasan (கடலரசன்)');
   const [registrationNo, setRegistrationNo] = useState('IND-TN-10-MM-4021');
 
@@ -39,9 +40,9 @@ export const MyProfile: React.FC = () => {
   return (
     <FishermanLayout>
       <PageHeader
-        title="My Profile & Vessel Credentials"
-        subtitle="Manage your fisherman registration details, primary harbor allocation, and vessel emergency transponder info."
-        badge="Demonstration Profile"
+        title={t('fisherman.profileTitle')}
+        subtitle={t('fisherman.profileSubtitle')}
+        badge={t('common.demoBadge')}
         action={
           !isEditing ? (
             <button
@@ -50,7 +51,7 @@ export const MyProfile: React.FC = () => {
               style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
             >
               <Edit2 size={16} />
-              <span>Edit Profile</span>
+              <span>{t('fisherman.editBtn')}</span>
             </button>
           ) : null
         }
@@ -74,7 +75,7 @@ export const MyProfile: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
             <CheckCircle size={18} />
-            <span>Profile details updated successfully in local prototype memory!</span>
+            <span>{t('fisherman.savedToast')}</span>
           </div>
           <button onClick={() => setSaveToast(false)} style={{ color: '#065f46' }}>
             <X size={16} />
@@ -99,7 +100,10 @@ export const MyProfile: React.FC = () => {
       >
         <Info size={18} style={{ flexShrink: 0 }} />
         <div>
-          <strong>Local Prototype Mode:</strong> Changes are saved to component state for demonstration during reviews. No backend database or Supabase credentials are connected.
+          <strong>{language === 'ta' ? 'உள்ளூர் மாதிரி பயன்முறை:' : 'Local Prototype Mode:'}</strong>{' '}
+          {language === 'ta'
+            ? 'மாற்றங்கள் மாதிரி நினைவகத்தில் சேமிக்கப்படுகின்றன. வெளிப்புற தரவுத்தளம் இணைக்கப்படவில்லை.'
+            : 'Changes are saved to component state for demonstration during reviews. No backend database or Supabase credentials are connected.'}
         </div>
       </div>
 
@@ -131,7 +135,7 @@ export const MyProfile: React.FC = () => {
               {name}
             </h3>
             <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-3)' }}>
-              Artisanal Trawler Skipper
+              {language === 'ta' ? 'நாட்டுப்படகு மாலுமி' : 'Artisanal Trawler Skipper'}
             </p>
 
             <StatusBadge status="active" />
@@ -140,15 +144,15 @@ export const MyProfile: React.FC = () => {
           <div style={{ width: '100%', marginTop: 'var(--space-6)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--color-border-light)', textAlign: 'left', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-secondary)' }}>
               <Anchor size={16} color="var(--color-teal)" />
-              <span>Registered Vessel: <strong>{vesselName}</strong></span>
+              <span>{t('fisherman.boatNameLabel')}: <strong>{vesselName}</strong></span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-secondary)' }}>
               <ShieldCheck size={16} color="var(--color-teal)" />
-              <span>Gov Reg: <strong>{registrationNo}</strong></span>
+              <span>{t('fisherman.regNumberLabel')}: <strong>{registrationNo}</strong></span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-secondary)' }}>
               <MapPin size={16} color="var(--color-teal)" />
-              <span>Base Port: <strong>{homeHarbour}</strong></span>
+              <span>{t('fisherman.homeHarbourLabel')}: <strong>{homeHarbour}</strong></span>
             </div>
           </div>
         </div>
@@ -157,11 +161,11 @@ export const MyProfile: React.FC = () => {
         <div className="card-base" style={{ padding: 'var(--space-6)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-5)', borderBottom: '1px solid var(--color-border-light)', paddingBottom: 'var(--space-3)' }}>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-              {isEditing ? 'Edit Profile Details' : 'Account & Vessel Information'}
+              {isEditing ? t('fisherman.editBtn') : t('fisherman.personalInfo')}
             </h3>
             {isEditing && (
               <span className="badge-prototype">
-                Editing Enabled
+                {language === 'ta' ? 'திருத்தம் இயக்கப்பட்டது' : 'Editing Enabled'}
               </span>
             )}
           </div>
@@ -170,7 +174,7 @@ export const MyProfile: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)', marginBottom: '0.35rem' }}>
-                  Full Name
+                  {t('fisherman.fullName')}
                 </label>
                 <input
                   type="text"
@@ -191,7 +195,7 @@ export const MyProfile: React.FC = () => {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)', marginBottom: '0.35rem' }}>
-                  Contact Mobile Number
+                  {t('fisherman.contactNumber')}
                 </label>
                 <input
                   type="text"
@@ -214,7 +218,7 @@ export const MyProfile: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)', marginBottom: '0.35rem' }}>
-                  Registered Email Address
+                  {t('auth.email')}
                 </label>
                 <input
                   type="email"
@@ -234,12 +238,12 @@ export const MyProfile: React.FC = () => {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)', marginBottom: '0.35rem' }}>
-                  Preferred Language
+                  {t('fisherman.languagePref')}
                 </label>
                 <select
                   disabled={!isEditing}
-                  value={preferredLanguage}
-                  onChange={(e) => setPreferredLanguage(e.target.value as 'ta' | 'en')}
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value as 'ta' | 'en')}
                   style={{
                     width: '100%',
                     padding: '0.65rem 0.85rem',
@@ -249,7 +253,7 @@ export const MyProfile: React.FC = () => {
                     fontSize: '0.9rem',
                   }}
                 >
-                  <option value="ta">Tamil (தமிழ்)</option>
+                  <option value="ta">தமிழ் (Tamil)</option>
                   <option value="en">English</option>
                 </select>
               </div>
@@ -258,7 +262,7 @@ export const MyProfile: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)', marginBottom: '0.35rem' }}>
-                  Home Fishing Harbour
+                  {t('fisherman.homeHarbourLabel')}
                 </label>
                 <select
                   disabled={!isEditing}
@@ -283,7 +287,7 @@ export const MyProfile: React.FC = () => {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)', marginBottom: '0.35rem' }}>
-                  Vessel Name
+                  {t('fisherman.boatNameLabel')}
                 </label>
                 <input
                   type="text"
@@ -304,7 +308,7 @@ export const MyProfile: React.FC = () => {
 
             <div style={{ marginBottom: 'var(--space-6)' }}>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)', marginBottom: '0.35rem' }}>
-                Craft Registration Number
+                {t('fisherman.regNumberLabel')}
               </label>
               <input
                 type="text"
@@ -329,11 +333,11 @@ export const MyProfile: React.FC = () => {
                   onClick={() => setIsEditing(false)}
                   className="btn btn-outline"
                 >
-                  Cancel
+                  {t('fisherman.cancel')}
                 </button>
                 <button type="submit" className="btn btn-accent">
                   <Save size={16} />
-                  <span>Save Profile (Local UI)</span>
+                  <span>{t('fisherman.saveBtn')}</span>
                 </button>
               </div>
             )}
@@ -343,3 +347,4 @@ export const MyProfile: React.FC = () => {
     </FishermanLayout>
   );
 };
+export default MyProfile;

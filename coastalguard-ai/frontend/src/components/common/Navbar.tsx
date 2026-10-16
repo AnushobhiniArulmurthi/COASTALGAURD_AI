@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import { Logo } from './Logo';
+import { LanguageSelector } from './LanguageSelector';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export const Navbar: React.FC = () => {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
@@ -94,7 +97,7 @@ export const Navbar: React.FC = () => {
               textDecoration: 'none',
             }}
           >
-            Home
+            {t('nav.home')}
           </Link>
           <button
             onClick={() => scrollToSection('features')}
@@ -110,7 +113,7 @@ export const Navbar: React.FC = () => {
             onMouseEnter={(e) => (e.currentTarget.style.color = '#38bdf8')}
             onMouseLeave={(e) => (e.currentTarget.style.color = '#cbd5e1')}
           >
-            Features
+            {t('nav.features')}
           </button>
           <button
             onClick={() => scrollToSection('about')}
@@ -126,7 +129,7 @@ export const Navbar: React.FC = () => {
             onMouseEnter={(e) => (e.currentTarget.style.color = '#38bdf8')}
             onMouseLeave={(e) => (e.currentTarget.style.color = '#cbd5e1')}
           >
-            About Us
+            {t('nav.about')}
           </button>
           <button
             onClick={() => scrollToSection('contact')}
@@ -142,11 +145,11 @@ export const Navbar: React.FC = () => {
             onMouseEnter={(e) => (e.currentTarget.style.color = '#38bdf8')}
             onMouseLeave={(e) => (e.currentTarget.style.color = '#cbd5e1')}
           >
-            Contact
+            {t('nav.contact')}
           </button>
         </nav>
 
-        {/* Desktop "Get Started" Call To Action */}
+        {/* Desktop Top-Right Actions: Language Selector + Get Started */}
         <div
           style={{
             display: 'none',
@@ -155,6 +158,7 @@ export const Navbar: React.FC = () => {
           }}
           className="desktop-actions"
         >
+          <LanguageSelector />
           <button
             onClick={handleGetStarted}
             className="btn btn-ocean"
@@ -166,31 +170,45 @@ export const Navbar: React.FC = () => {
               boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
             }}
           >
-            <span>Get Started</span>
+            <span>{t('nav.getStarted')}</span>
             <ArrowRight size={16} />
           </button>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="mobile-toggle"
-          aria-label="Toggle navigation menu"
+        {/* Mobile Header Right: Language Selector + Mobile Toggle */}
+        <div
+          className="mobile-header-actions"
           style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            width: 42,
-            height: 42,
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid rgba(56, 189, 248, 0.3)',
-            backgroundColor: 'rgba(255, 255, 255, 0.06)',
-            color: '#ffffff',
-            cursor: 'pointer',
+            gap: 'var(--space-2)',
           }}
         >
-          {isOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+          <div className="mobile-lang-wrapper">
+            <LanguageSelector compact />
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="mobile-toggle"
+            aria-label="Toggle navigation menu"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 40,
+              height: 40,
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid rgba(56, 189, 248, 0.3)',
+              backgroundColor: 'rgba(255, 255, 255, 0.06)',
+              color: '#ffffff',
+              cursor: 'pointer',
+            }}
+          >
+            {isOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Drawer */}
@@ -219,7 +237,7 @@ export const Navbar: React.FC = () => {
               textDecoration: 'none',
             }}
           >
-            Home
+            {t('nav.home')}
           </Link>
           <button
             onClick={() => scrollToSection('features')}
@@ -234,7 +252,7 @@ export const Navbar: React.FC = () => {
               cursor: 'pointer',
             }}
           >
-            Features
+            {t('nav.features')}
           </button>
           <button
             onClick={() => scrollToSection('about')}
@@ -249,7 +267,7 @@ export const Navbar: React.FC = () => {
               cursor: 'pointer',
             }}
           >
-            About Us
+            {t('nav.about')}
           </button>
           <button
             onClick={() => scrollToSection('contact')}
@@ -264,7 +282,7 @@ export const Navbar: React.FC = () => {
               cursor: 'pointer',
             }}
           >
-            Contact
+            {t('nav.contact')}
           </button>
 
           <button
@@ -279,7 +297,7 @@ export const Navbar: React.FC = () => {
               marginTop: 'var(--space-2)',
             }}
           >
-            <span>Get Started</span>
+            <span>{t('nav.getStarted')}</span>
             <ArrowRight size={16} />
           </button>
         </div>
@@ -294,7 +312,7 @@ export const Navbar: React.FC = () => {
           .desktop-actions {
             display: flex !important;
           }
-          .mobile-toggle {
+          .mobile-header-actions {
             display: none !important;
           }
         }

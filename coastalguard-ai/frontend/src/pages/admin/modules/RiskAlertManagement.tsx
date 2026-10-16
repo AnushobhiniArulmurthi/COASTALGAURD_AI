@@ -13,9 +13,11 @@ import { AdminLayout } from '../../../components/layout/AdminLayout';
 import { PageHeader } from '../../../components/common/PageHeader';
 import { StatusBadge } from '../../../components/common/StatusBadge';
 import { mockAlerts as initialAlerts } from '../../../data/mockData';
+import { useLanguage } from '../../../i18n/LanguageContext';
 import type { SafetyAlert, SeverityLevel } from '../../../types';
 
 export const RiskAlertManagement: React.FC = () => {
+  const { t, language } = useLanguage();
   const [alerts, setAlerts] = useState<SafetyAlert[]>(initialAlerts);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
@@ -40,8 +42,8 @@ export const RiskAlertManagement: React.FC = () => {
       message,
       coastalRegion,
       severity,
-      issuedAt: 'Just now (Prototype draft)',
-      validUntil: 'Next 24 Hours',
+      issuedAt: language === 'ta' ? 'இப்போது (மாதிரி)' : 'Just now (Prototype draft)',
+      validUntil: language === 'ta' ? 'அடுத்த 24 மணிநேரம்' : 'Next 24 Hours',
       bulletinId: `CG-IN-2026-${Math.floor(100 + Math.random() * 900)}`,
       isActive: true,
       recommendedAction,
@@ -54,7 +56,11 @@ export const RiskAlertManagement: React.FC = () => {
     setTitle('');
     setMessage('');
 
-    setSuccessToast(`Announcement "${newAlert.title}" published to prototype demo state.`);
+    setSuccessToast(
+      language === 'ta'
+        ? `"${newAlert.title}" அறிவிப்பு மாதிரி நிலையாக வெளியிடப்பட்டது.`
+        : `Announcement "${newAlert.title}" published to prototype demo state.`
+    );
     setTimeout(() => {
       setSuccessToast(null);
     }, 4000);
@@ -70,9 +76,9 @@ export const RiskAlertManagement: React.FC = () => {
   return (
     <AdminLayout>
       <PageHeader
-        title="Risk & Alert Management"
-        subtitle="Manage marine weather bulletins, declare coastal danger levels, and simulate emergency broadcasts."
-        badge="Prototype — integration pending"
+        title={t('admin.riskTitle')}
+        subtitle={t('admin.riskSubtitle')}
+        badge={t('common.prototypeBadge')}
         action={
           <button
             onClick={() => setIsModalOpen(true)}
@@ -80,7 +86,7 @@ export const RiskAlertManagement: React.FC = () => {
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
             <PlusCircle size={18} />
-            <span>Create Announcement</span>
+            <span>{t('admin.createAnnouncement')}</span>
           </button>
         }
       />
@@ -128,7 +134,10 @@ export const RiskAlertManagement: React.FC = () => {
       >
         <Info size={18} style={{ flexShrink: 0 }} />
         <div>
-          <strong>Simulated Broadcast Notice:</strong> Creating an announcement in this prototype updates local React state for demonstration. No external push notifications or SMS dispatches are delivered to real fishermen.
+          <strong>{language === 'ta' ? 'செயல்முறை மாதிரி அறிவிப்பு:' : 'Simulated Broadcast Notice:'}</strong>{' '}
+          {language === 'ta'
+            ? 'இந்த போர்ட்டலில் ஒரு புதிய எச்சரிக்கையை உருவாக்குவது மாதிரி நிலையைப் புதுப்பிக்கிறது. உண்மையான மீனவர்களுக்கு எந்தவொரு வெளிப்புற எஸ்எம்எஸ் அல்லது புஷ் அறிவிப்புகளும் அனுப்பப்படாது.'
+            : 'Creating an announcement in this prototype updates local React state for demonstration. No external push notifications or SMS dispatches are delivered to real fishermen.'}
         </div>
       </div>
 
@@ -146,8 +155,12 @@ export const RiskAlertManagement: React.FC = () => {
             <ShieldAlert size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Extreme Risk</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-extreme-text)' }}>{countBySeverity.extreme} Active</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              {t('common.extreme')}
+            </div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-extreme-text)' }}>
+              {countBySeverity.extreme} {t('admin.active')}
+            </div>
           </div>
         </div>
 
@@ -156,8 +169,12 @@ export const RiskAlertManagement: React.FC = () => {
             <AlertTriangle size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>High Danger</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-danger-text)' }}>{countBySeverity.high} Active</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              {t('common.high')}
+            </div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-danger-text)' }}>
+              {countBySeverity.high} {t('admin.active')}
+            </div>
           </div>
         </div>
 
@@ -166,8 +183,12 @@ export const RiskAlertManagement: React.FC = () => {
             <AlertTriangle size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Moderate Caution</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-warning-text)' }}>{countBySeverity.moderate} Active</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              {t('common.moderate')}
+            </div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-warning-text)' }}>
+              {countBySeverity.moderate} {t('admin.active')}
+            </div>
           </div>
         </div>
 
@@ -176,8 +197,12 @@ export const RiskAlertManagement: React.FC = () => {
             <CheckCircle size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Low / Normal</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-success-text)' }}>{countBySeverity.low} Logged</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              {t('common.low')}
+            </div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-success-text)' }}>
+              {countBySeverity.low} {language === 'ta' ? 'பதிவானது' : 'Logged'}
+            </div>
           </div>
         </div>
       </div>
@@ -187,14 +212,14 @@ export const RiskAlertManagement: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
           <div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-              Maritime Bulletins & Danger Broadcasts
+              {language === 'ta' ? 'கடல்சார் வானிலை எச்சரிக்கைகள் & அறிவிப்புகள்' : 'Maritime Bulletins & Danger Broadcasts'}
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-              Registry of all active and scheduled coastal safety announcements
+              {language === 'ta' ? 'செயலில் உள்ள அனைத்து கடலோர பாதுகாப்பு அறிவிப்புகளின் பட்டியல்' : 'Registry of all active and scheduled coastal safety announcements'}
             </p>
           </div>
           <span className="badge-prototype">
-            <Sparkles size={11} /> Live Demo State
+            <Sparkles size={11} /> {t('common.demoBadge')}
           </span>
         </div>
 
@@ -202,12 +227,12 @@ export const RiskAlertManagement: React.FC = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
             <thead>
               <tr style={{ backgroundColor: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border-light)' }}>
-                <th style={{ padding: '0.75rem 1rem' }}>Bulletin ID</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Title & Description</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Coastal Sector</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Severity Level</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Issued Timeline</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Recommended Directive</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.bulletinId')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.alertTitle')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.coastalZone')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.severity')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.lastUpdated')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.action')}</th>
               </tr>
             </thead>
             <tbody>
@@ -231,8 +256,8 @@ export const RiskAlertManagement: React.FC = () => {
                     <StatusBadge status={alert.severity} size="sm" />
                   </td>
                   <td style={{ padding: '0.85rem 1rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-                    <div>Issued: {alert.issuedAt}</div>
-                    <div style={{ color: 'var(--color-text-muted)' }}>Valid: {alert.validUntil}</div>
+                    <div>{language === 'ta' ? 'வெளியீடு:' : 'Issued:'} {alert.issuedAt}</div>
+                    <div style={{ color: 'var(--color-text-muted)' }}>{language === 'ta' ? 'செல்லுபடியாகும்:' : 'Valid:'} {alert.validUntil}</div>
                   </td>
                   <td style={{ padding: '0.85rem 1rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
                     {alert.recommendedAction}
@@ -275,7 +300,7 @@ export const RiskAlertManagement: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <BellRing size={20} color="var(--color-ocean-blue)" />
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-navy-primary)' }}>
-                  Create Safety Announcement
+                  {t('admin.modalTitle')}
                 </h3>
               </div>
               <button onClick={() => setIsModalOpen(false)} style={{ color: 'var(--color-text-muted)' }}>
@@ -286,11 +311,11 @@ export const RiskAlertManagement: React.FC = () => {
             <form onSubmit={handleCreateAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                  Bulletin Title
+                  {t('admin.fieldTitle')}
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Squall Warning & Returning Advisory"
+                  placeholder={t('admin.fieldTitlePlaceholder')}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   style={{
@@ -307,7 +332,7 @@ export const RiskAlertManagement: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                    Coastal Region
+                    {t('admin.fieldRegion')}
                   </label>
                   <select
                     value={coastalRegion}
@@ -330,7 +355,7 @@ export const RiskAlertManagement: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                    Severity Level
+                    {t('admin.fieldSeverity')}
                   </label>
                   <select
                     value={severity}
@@ -344,21 +369,21 @@ export const RiskAlertManagement: React.FC = () => {
                       fontWeight: 600,
                     }}
                   >
-                    <option value="low">Low Risk</option>
-                    <option value="moderate">Moderate Caution</option>
-                    <option value="high">High Danger</option>
-                    <option value="extreme">Extreme Danger</option>
+                    <option value="low">{t('common.low')}</option>
+                    <option value="moderate">{t('common.moderate')}</option>
+                    <option value="high">{t('common.high')}</option>
+                    <option value="extreme">{t('common.extreme')}</option>
                   </select>
                 </div>
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                  Safety Message / Advisory Description
+                  {t('admin.fieldMessage')}
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="Detail the atmospheric trigger, expected swell height, and instructions..."
+                  placeholder={t('admin.fieldMessagePlaceholder')}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   style={{
@@ -375,11 +400,11 @@ export const RiskAlertManagement: React.FC = () => {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                  Recommended Action
+                  {t('admin.fieldAction')}
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Anchor in safe creek or return to harbour"
+                  placeholder="e.g. Return to nearest harbour / துறைமுகத்திற்கு திரும்புங்கள்"
                   value={recommendedAction}
                   onChange={(e) => setRecommendedAction(e.target.value)}
                   style={{
@@ -398,10 +423,10 @@ export const RiskAlertManagement: React.FC = () => {
                   onClick={() => setIsModalOpen(false)}
                   className="btn btn-outline"
                 >
-                  Cancel
+                  {t('admin.cancelBtn')}
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  <span>Publish Announcement (Local Demo)</span>
+                  <span>{t('admin.publishBtn')}</span>
                 </button>
               </div>
             </form>
@@ -411,3 +436,4 @@ export const RiskAlertManagement: React.FC = () => {
     </AdminLayout>
   );
 };
+export default RiskAlertManagement;

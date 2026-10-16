@@ -15,8 +15,10 @@ import { PageHeader } from '../../../components/common/PageHeader';
 import { StatCard } from '../../../components/common/StatCard';
 import { StatusBadge } from '../../../components/common/StatusBadge';
 import { mockMarineConditions } from '../../../data/mockData';
+import { useLanguage } from '../../../i18n/LanguageContext';
 
 export const MarineMonitoring: React.FC = () => {
+  const { t, language } = useLanguage();
   const [selectedRegionId, setSelectedRegionId] = useState('gulf-of-mannar');
   const region = mockMarineConditions[selectedRegionId] || mockMarineConditions['gulf-of-mannar'];
 
@@ -33,13 +35,13 @@ export const MarineMonitoring: React.FC = () => {
   return (
     <AdminLayout>
       <PageHeader
-        title="Marine Monitoring"
-        subtitle="Sector-wise oceanographic readings, wave height telemetry, wind vectors, and meteorological forecasts."
-        badge="Prototype — integration pending"
+        title={t('admin.marineTitle')}
+        subtitle={t('admin.marineSubtitle')}
+        badge={t('common.prototypeBadge')}
         action={
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
             <label htmlFor="region-select" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)' }}>
-              Select Sector:
+              {t('admin.selectSector')}
             </label>
             <select
               id="region-select"
@@ -82,9 +84,9 @@ export const MarineMonitoring: React.FC = () => {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
           <Clock size={16} color="var(--color-ocean-blue)" />
-          <span>Active Coastal Zone: <strong>{region.coastalZone}</strong></span>
+          <span>{language === 'ta' ? 'செயலில் உள்ள மண்டலம்:' : 'Active Coastal Zone:'} <strong>{region.coastalZone}</strong></span>
           <span>•</span>
-          <span>Last Sync: {region.lastUpdated}</span>
+          <span>{t('admin.lastUpdated')}: {region.lastUpdated}</span>
         </div>
         <StatusBadge status={region.riskLevel} />
       </div>
@@ -99,36 +101,36 @@ export const MarineMonitoring: React.FC = () => {
         }}
       >
         <StatCard
-          title="Wind Velocity"
+          title={t('admin.wind')}
           value={region.windSpeedKnots}
           unit="knots"
-          subtitle={`Direction: ${region.windDirection}`}
+          subtitle={`${language === 'ta' ? 'திசை' : 'Direction'}: ${region.windDirection}`}
           icon={<Wind size={22} />}
           accentColor="var(--color-ocean-blue)"
         />
 
         <StatCard
-          title="Significant Wave Height"
+          title={t('admin.wave')}
           value={region.waveHeightMeters}
           unit="meters"
-          subtitle={`Swell Period: ${region.swellPeriodSeconds} sec`}
+          subtitle={`${t('admin.swellPeriod')}: ${region.swellPeriodSeconds} sec`}
           icon={<Waves size={22} />}
           accentColor={region.waveHeightMeters > 3 ? 'var(--color-danger)' : 'var(--color-teal)'}
         />
 
         <StatCard
-          title="Precipitation / Rainfall"
+          title={t('admin.rainfall')}
           value={region.rainfallMm}
           unit="mm/24h"
-          subtitle={region.rainfallMm > 20 ? 'Heavy squall bands' : 'Light scattered showers'}
+          subtitle={region.rainfallMm > 20 ? (language === 'ta' ? 'கனமழை பட்டை' : 'Heavy squall bands') : (language === 'ta' ? 'லேசான தூறல்' : 'Light scattered showers')}
           icon={<CloudRain size={22} />}
           accentColor="#0284c7"
         />
 
         <StatCard
-          title="Forecast Advisory Status"
-          value={region.riskLevel === 'extreme' ? 'Red Ban' : region.riskLevel === 'high' ? 'High Gale' : 'Normal'}
-          subtitle="Updated from Regional Meteorological Centre"
+          title={t('admin.risk')}
+          value={region.riskLevel === 'extreme' ? (language === 'ta' ? 'சிவப்பு தடை' : 'Red Ban') : region.riskLevel === 'high' ? (language === 'ta' ? 'அதிவேக காற்று' : 'High Gale') : (language === 'ta' ? 'இயல்பு' : 'Normal')}
+          subtitle={language === 'ta' ? 'மண்டல வானிலை மையத்திலிருந்து புதுப்பிக்கப்பட்டது' : 'Updated from Regional Meteorological Centre'}
           icon={<AlertCircle size={22} />}
           accentColor={region.riskLevel === 'extreme' ? '#991b1b' : '#f59e0b'}
         />
@@ -141,10 +143,10 @@ export const MarineMonitoring: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
             <div>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-                Diurnal Swell & Wave Height Progression
+                {t('admin.hourlyTrend')}
               </h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                Demonstration timeline for {region.regionName} (Sample Data)
+                {region.regionName} {language === 'ta' ? '(மாதிரி அளவீடுகள்)' : '(Sample Data)'}
               </p>
             </div>
             <span className="badge-prototype">
@@ -193,8 +195,8 @@ export const MarineMonitoring: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'var(--space-4)', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-            <span>Axis: Significant Wave Height (m) over 24-Hour Cycle</span>
-            <span>Wave calculation model: INCOIS SWAN (Sample Mock)</span>
+            <span>Axis: {t('admin.wave')} (m) over 24-Hour Cycle</span>
+            <span>INCOIS SWAN Model (Sample Mock)</span>
           </div>
         </div>
 
@@ -202,17 +204,17 @@ export const MarineMonitoring: React.FC = () => {
         <div className="card-base" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)', marginBottom: 'var(--space-2)' }}>
-              Atmospheric & Sea Metrics
+              {t('admin.telemetryCards')}
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
-              Moored buoy & coastal station sensors
+              {language === 'ta' ? 'கடல் மிதவை மற்றும் கடலோர நிலைய சென்சார்கள்' : 'Moored buoy & coastal station sensors'}
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Thermometer size={16} color="var(--color-ocean-blue)" />
-                  <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>Sea Surface Temp</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>{t('admin.waterTemp')}</span>
                 </div>
                 <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{region.seaSurfaceTempC}°C</span>
               </div>
@@ -220,7 +222,7 @@ export const MarineMonitoring: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Gauge size={16} color="var(--color-ocean-blue)" />
-                  <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>Barometric Pressure</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>{t('admin.barometer')}</span>
                 </div>
                 <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{region.barometricPressureHpa} hPa</span>
               </div>
@@ -228,7 +230,9 @@ export const MarineMonitoring: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Eye size={16} color="var(--color-ocean-blue)" />
-                  <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>Horizontal Visibility</span>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+                    {language === 'ta' ? 'பார்வைத் தூரம்' : 'Visibility'}
+                  </span>
                 </div>
                 <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{region.visibilityKm} km</span>
               </div>
@@ -237,7 +241,7 @@ export const MarineMonitoring: React.FC = () => {
 
           <div style={{ marginTop: 'var(--space-4)', padding: '0.75rem', backgroundColor: 'var(--color-bg-alt)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-navy-primary)', marginBottom: '0.2rem' }}>
-              Meteorological Summary:
+              {t('admin.forecastHeadline')}:
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
               {region.forecastSummary}
@@ -248,3 +252,4 @@ export const MarineMonitoring: React.FC = () => {
     </AdminLayout>
   );
 };
+export default MarineMonitoring;

@@ -2,8 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Shield, LifeBuoy, Heart, Mail, Phone, Radio, MapPin } from 'lucide-react';
 import { Logo } from './Logo';
+import { useLanguage } from '../../i18n/LanguageContext';
 
 export const Footer: React.FC = () => {
+  const { t, language } = useLanguage();
+
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -42,7 +45,7 @@ export const Footer: React.FC = () => {
                 marginBottom: 'var(--space-4)',
               }}
             >
-              CoastalGuard AI is a dedicated marine safety assistance platform engineered to bring coastal weather intelligence, risk awareness, and safety communication together for fishing communities and maritime authorities.
+              {t('footer.description')}
             </p>
             <div
               style={{
@@ -58,7 +61,7 @@ export const Footer: React.FC = () => {
               }}
             >
               <LifeBuoy size={14} />
-              <span>Safer Seas • Smarter Decisions</span>
+              <span>{t('footer.missionBadge')}</span>
             </div>
           </div>
 
@@ -73,7 +76,7 @@ export const Footer: React.FC = () => {
                 letterSpacing: '0.02em',
               }}
             >
-              Quick Navigation
+              {t('footer.quickNav')}
             </h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: 0, margin: 0 }}>
               <li>
@@ -82,7 +85,7 @@ export const Footer: React.FC = () => {
                   onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                   style={{ color: '#cbd5e1', fontSize: '0.9rem', textDecoration: 'none', transition: 'color 0.2s' }}
                 >
-                  Home
+                  {t('nav.home')}
                 </Link>
               </li>
               <li>
@@ -90,7 +93,7 @@ export const Footer: React.FC = () => {
                   onClick={() => scrollTo('features')}
                   style={{ background: 'none', border: 'none', padding: 0, color: '#cbd5e1', fontSize: '0.9rem', cursor: 'pointer', textAlign: 'left' }}
                 >
-                  Features & Capabilities
+                  {t('nav.features')}
                 </button>
               </li>
               <li>
@@ -98,7 +101,7 @@ export const Footer: React.FC = () => {
                   onClick={() => scrollTo('how-it-works')}
                   style={{ background: 'none', border: 'none', padding: 0, color: '#cbd5e1', fontSize: '0.9rem', cursor: 'pointer', textAlign: 'left' }}
                 >
-                  How It Works
+                  {t('how.title')}
                 </button>
               </li>
               <li>
@@ -106,7 +109,7 @@ export const Footer: React.FC = () => {
                   onClick={() => scrollTo('about')}
                   style={{ background: 'none', border: 'none', padding: 0, color: '#cbd5e1', fontSize: '0.9rem', cursor: 'pointer', textAlign: 'left' }}
                 >
-                  About Us
+                  {t('nav.about')}
                 </button>
               </li>
               <li>
@@ -114,7 +117,7 @@ export const Footer: React.FC = () => {
                   onClick={() => scrollTo('contact')}
                   style={{ background: 'none', border: 'none', padding: 0, color: '#cbd5e1', fontSize: '0.9rem', cursor: 'pointer', textAlign: 'left' }}
                 >
-                  Contact & Assistance
+                  {t('nav.contact')}
                 </button>
               </li>
             </ul>
@@ -131,10 +134,10 @@ export const Footer: React.FC = () => {
                 letterSpacing: '0.02em',
               }}
             >
-              Platform Access
+              {t('footer.platformAccess')}
             </h4>
             <p style={{ fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.6, marginBottom: 'var(--space-3)' }}>
-              Independent entry points for registered personnel:
+              {t('footer.accessDesc')}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
               <Link
@@ -148,7 +151,7 @@ export const Footer: React.FC = () => {
                   textDecoration: 'none',
                 }}
               >
-                <span>→ Fisherman Portal Login</span>
+                <span>→ {t('hero.fishermanLogin')}</span>
               </Link>
               <Link
                 to="/admin/login"
@@ -161,7 +164,7 @@ export const Footer: React.FC = () => {
                   textDecoration: 'none',
                 }}
               >
-                <span>→ Admin Portal Login</span>
+                <span>→ {t('hero.adminLogin')}</span>
               </Link>
             </div>
           </div>
@@ -177,16 +180,16 @@ export const Footer: React.FC = () => {
                 letterSpacing: '0.02em',
               }}
             >
-              Emergency & Support
+              {t('footer.emergency')}
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem', color: '#94a3b8' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Radio size={16} color="#38bdf8" />
-                <span>VHF Distress: Channel 16 (156.8 MHz)</span>
+                <span>{language === 'ta' ? 'விஎச்எஃப் அவசர அழைப்பு: அலைவரிசை 16 (156.8 MHz)' : 'VHF Distress: Channel 16 (156.8 MHz)'}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Phone size={16} color="#2dd4bf" />
-                <span>Coast Guard Helpline: 1554 (Toll-Free)</span>
+                <span>{language === 'ta' ? 'கடலோர காவல்படை அவசர எண்: 1554' : 'Coast Guard Helpline: 1554 (Toll-Free)'}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Mail size={16} color="#38bdf8" />
@@ -194,7 +197,7 @@ export const Footer: React.FC = () => {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <MapPin size={16} color="#2dd4bf" />
-                <span>Coromandel & Gulf of Mannar Maritime Command</span>
+                <span>{language === 'ta' ? 'சோழமண்டல & மன்னார் வளைகுடா கடல் கட்டளை மையம்' : 'Coromandel & Gulf of Mannar Maritime Command'}</span>
               </div>
             </div>
           </div>
@@ -215,15 +218,15 @@ export const Footer: React.FC = () => {
           }}
         >
           <div>
-            © {new Date().getFullYear()} CoastalGuard AI. Built for Coastal Fishing Safety & Maritime Operations.
+            {t('footer.copyright', { year: new Date().getFullYear() })}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <Shield size={14} color="#38bdf8" /> Prototype Edition
+              <Shield size={14} color="#38bdf8" /> {t('footer.prototype')}
             </span>
             <span>•</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              Made with <Heart size={14} color="#ef4444" /> for fishermen
+              {t('footer.madeFor')} <Heart size={14} color="#ef4444" style={{ display: 'inline', margin: '0 2px' }} />
             </span>
           </div>
         </div>

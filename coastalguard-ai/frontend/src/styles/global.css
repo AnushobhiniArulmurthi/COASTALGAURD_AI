@@ -89,12 +89,51 @@ img, svg {
   background: var(--color-ocean-blue);
 }
 
-/* Leaflet Overrides */
+/* Leaflet Overrides & Dragging Fixes */
 .leaflet-container {
   width: 100%;
   height: 100%;
+  min-height: 380px;
   border-radius: var(--radius-md);
-  z-index: 10;
+  z-index: 1;
+  cursor: grab;
+  touch-action: pan-x pan-y !important;
+  user-select: none;
+  -webkit-user-select: none;
+  position: relative;
+}
+
+.leaflet-container:active {
+  cursor: grabbing;
+}
+
+.leaflet-pane {
+  z-index: 400;
+}
+
+.leaflet-tile-pane {
+  z-index: 200;
+  pointer-events: auto !important;
+}
+
+.leaflet-overlay-pane {
+  z-index: 400;
+}
+
+.leaflet-marker-pane {
+  z-index: 600;
+}
+
+.leaflet-tooltip-pane {
+  z-index: 650;
+}
+
+.leaflet-popup-pane {
+  z-index: 700;
+}
+
+.leaflet-control-container {
+  z-index: 800;
 }
 
 .leaflet-popup-content-wrapper {
@@ -107,4 +146,50 @@ img, svg {
 :focus-visible {
   outline: 2px solid var(--color-ocean-blue);
   outline-offset: 2px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse-red-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.35), 0 0 45px rgba(239, 68, 68, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(239, 68, 68, 0.65), 0 0 70px rgba(239, 68, 68, 0.3);
+  }
+}
+
+.sos-card-container {
+  animation: pulse-red-glow 2.4s infinite ease-in-out;
+}
+
+.sidebar-sos-btn:hover {
+  background-color: #b91c1c !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.6) !important;
+  transform: translateY(-1px);
+}
+
+.btn-cancel-sos:hover {
+  background-color: #f1f5f9 !important;
+  transform: scale(1.02);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sos-card-container,
+  .animate-spin,
+  .animate-pulse {
+    animation: none !important;
+    transition: none !important;
+  }
 }

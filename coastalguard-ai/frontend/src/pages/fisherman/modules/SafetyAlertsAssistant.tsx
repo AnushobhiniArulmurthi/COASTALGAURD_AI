@@ -1,168 +1,157 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   BotMessageSquare,
   Send,
-  Languages,
   Sparkles,
-  Info
+  Info,
+  Loader2,
+  AlertTriangle,
+  RotateCcw,
 } from 'lucide-react';
 import { FishermanLayout } from '../../../components/layout/FishermanLayout';
 import { PageHeader } from '../../../components/common/PageHeader';
 import { StatusBadge } from '../../../components/common/StatusBadge';
+import { LanguageSelector } from '../../../components/common/LanguageSelector';
 import { mockAlerts } from '../../../data/mockData';
-import type { SafetyAlert, Language, ChatMessage } from '../../../types';
+import { useLanguage } from '../../../i18n/LanguageContext';
+import { sendChatMessage } from '../../../services/chatService';
+import { ApiError } from '../../../services/api';
+import type { SafetyAlert, ChatMessage } from '../../../types';
 
 export const SafetyAlertsAssistant: React.FC = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>('ta');
+  const { t, language } = useLanguage();
   const [selectedAlert, setSelectedAlert] = useState<SafetyAlert>(mockAlerts[0]);
+  const isTamil = language === 'ta';
 
-  // Demo AI Chat Conversation
+  // Initial welcome message
   const initialChat: ChatMessage[] = [
     {
       id: 'msg-1',
       sender: 'assistant',
-      text: 'வணக்கம்! நான் உங்கள் CoastalGuard AI பாதுகாப்பு உதவியாளர். தற்போதைய கடல் வானிலை, புயல் எச்சரிக்கைகள் அல்லது அருகிலுள்ள பாதுகாப்பான துறைமுகங்கள் பற்றி என்னிடம் கேளுங்கள்.',
-      textTamil: 'Hello! I am your CoastalGuard AI Marine Safety Assistant. Ask me about current weather, gale warnings, or nearest safe harbour shelters.',
+      text: isTamil
+        ? 'வணக்கம்! நான் உங்கள் CoastalGuard AI பாதுகாப்பு உதவியாளர். தற்போதைய கடல் வானிலை, புயல் எச்சரிக்கைகள் அல்லது அருகிலுள்ள பாதுகாப்பான துறைமுகங்கள் பற்றி என்னிடம் கேளுங்கள்.'
+        : 'Hello! I am your CoastalGuard AI Marine Safety Assistant. Ask me about current weather, gale warnings, or nearest safe harbour shelters.',
       timestamp: 'Today, 07:00 AM',
-    },
-    {
-      id: 'msg-2',
-      sender: 'user',
-      text: 'இன்று இரவு மன்னார் வளைகுடாவில் நாட்டுப்படகில் மீன்பிடிக்க செல்லலாமா?',
-      timestamp: 'Today, 07:02 AM',
-    },
-    {
-      id: 'msg-3',
-      sender: 'assistant',
-      text: '🚨 வேண்டாம்! மன்னார் வளைகுடாவில் மணிக்கு 35 முதல் 40 கி.மீ வேகத்தில் பலத்த காற்று வீசக்கூடும் மற்றும் அலைகள் 3.5 மீட்டர் வரை உயரும் என எச்சரிக்கப்பட்டுள்ளது. நாட்டுப்படகுகள் கடலுக்குள் செல்லக் கூடாது என அறிவுறுத்தப்படுகிறது. படகுகளை இராமேஸ்வரம் அல்லது மண்டபம் துறைமுகத்தில் பாதுகாப்பாக நங்கூரமிடவும்.',
-      textTamil: '🚨 Advising AGAINST departure! South-westerly winds gusting to 35-40 knots with wave heights exceeding 3.5 meters expected in Gulf of Mannar. Small craft operations must cease immediately. Anchor your craft inside Rameswaram or Mandapam harbour shelters.',
-      timestamp: 'Today, 07:02 AM',
-      suggestedAction: 'Rameswaram Harbour (VHF Channel 16 & 68)',
     },
   ];
 
   const [messages, setMessages] = useState<ChatMessage[]>(initialChat);
   const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<{ text: string; action?: string } | null>(null);
+  const [lastQuery, setLastQuery] = useState<string | null>(null);
+  const [activeModel, setActiveModel] = useState<string | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom of chat when new messages arrive or loading state changes
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading, errorMessage]);
 
   const quickPrompts = [
     {
-      labelEn: 'Explain swell alert simply',
-      labelTa: 'அலை எச்சரிக்கையை விளக்குக',
-      question: selectedLanguage === 'ta' ? 'அலை எச்சரிக்கையை எளிய தமிழில் விளக்குக' : 'Please explain the current swell warning in simple words',
-      reply: selectedLanguage === 'ta'
-        ? 'தற்போதைய எச்சரிக்கை: கடலில் அலைகள் 3.5 மீட்டர் (சுமார் 11 அடி) வரை எழும். இந்த அலைகள் படகுகளை கவிழ்க்கும் வாய்ப்பு அதிகம். எனவே கரைக்குத் திரும்பி விழிப்புடன் இருங்கள்.'
-        : 'Explanation: Ocean swells are running at 3.5 meters (nearly 11 feet high) with strong squall winds. These conditions can overturn wooden catamarans and small trawlers. Please remain in protected waters.',
+      label: isTamil ? 'அலை எச்சரிக்கையை விளக்குக' : 'Explain swell alert simply',
+      question: isTamil
+        ? 'தற்போதைய கடல் அலை எச்சரிக்கையை எளிய தமிழில் விளக்குக.'
+        : 'Please explain the current swell warning in simple words.',
     },
     {
-      labelEn: 'Nearest safe harbour?',
-      labelTa: 'அருகிலுள்ள பாதுகாப்பான துறைமுகம் எது?',
-      question: selectedLanguage === 'ta' ? 'அருகிலுள்ள பாதுகாப்பான துறைமுகம் எது?' : 'Where is the closest safe harbour to take shelter?',
-      reply: selectedLanguage === 'ta'
-        ? 'மன்னார் வளைகுடா பகுதியில் இராமேஸ்வரம் மீன்பிடித் துறைமுகம் மற்றும் மண்டபம் முகத்துவாரம் பாதுகாப்பான தங்குமிடங்கள் ஆகும். VHF அலைவரிசை 16 அல்லது 68-ஐத் தொடர்பு கொள்ளவும்.'
-        : 'Rameswaram Fishing Harbour and Mandapam Jetty offer immediate sheltered deep-water anchorages. Contact port authorities via VHF Radio Channel 16 / 68.',
+      label: isTamil ? 'அருகிலுள்ள பாதுகாப்பான துறைமுகம் எது?' : 'Nearest safe harbour?',
+      question: isTamil
+        ? 'அருகிலுள்ள பாதுகாப்பான துறைமுகம் எது? அவசர உதவிக்கு யாரைத் தொடர்பு கொள்ள வேண்டும்?'
+        : 'Where is the closest safe harbour to take shelter, and who should I contact for emergency help?',
     },
     {
-      labelEn: 'When will weather clear?',
-      labelTa: 'வானிலை எப்போது சீராகும்?',
-      question: selectedLanguage === 'ta' ? 'வானிலை எப்போது சீராகும்?' : 'When is the weather expected to clear for fishing?',
-      reply: selectedLanguage === 'ta'
-        ? 'வானிலை மாதிரியின்படி, நாளை மாலை 6 மணி வரை பலத்த காற்று நீடிக்கும். அதற்குப் பிறகு காற்றின் வேகம் 15 நாட்ஸ் வரை குறையும் என கணிக்கப்பட்டுள்ளது.'
-        : 'According to current wave models, squally conditions will persist until tomorrow evening (18:00 IST), after which winds are projected to moderate under 15 knots.',
+      label: isTamil ? 'வானிலை எப்போது சீராகும்?' : 'When will weather clear?',
+      question: isTamil
+        ? 'மீன்பிடிக்க கடலுக்குச் செல்ல வானிலை எப்போது சீராகும்?'
+        : 'When is the weather expected to clear for fishing operations?',
     },
   ];
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText.trim()) return;
+  const executeChatQuery = async (queryText: string) => {
+    const trimmed = queryText.trim();
+    if (!trimmed || isLoading) return;
 
+    setErrorMessage(null);
+    setLastQuery(trimmed);
+
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       sender: 'user',
-      text: inputText,
-      timestamp: 'Just now',
+      text: trimmed,
+      timestamp: timeStr,
     };
 
     setMessages((prev) => [...prev, userMsg]);
-    setInputText('');
+    setIsLoading(true);
 
-    // Simulated prototype AI response
-    setTimeout(() => {
-      const isTamilLang = selectedLanguage === 'ta';
+    try {
+      // Build context from currently selected official bulletin
+      const context = selectedAlert
+        ? `Official Bulletin ${selectedAlert.bulletinId} for ${selectedAlert.coastalRegion}: ${isTamil && selectedAlert.titleTamil ? selectedAlert.titleTamil : selectedAlert.title}. Severity: ${selectedAlert.severity}. Recommended Action: ${isTamil && selectedAlert.recommendedActionTamil ? selectedAlert.recommendedActionTamil : selectedAlert.recommendedAction}`
+        : undefined;
+
+      const response = await sendChatMessage(trimmed, language, context);
+
       const aiMsg: ChatMessage = {
         id: `msg-ai-${Date.now()}`,
         sender: 'assistant',
-        text: isTamilLang
-          ? `[மாதிரி பதில்]: உங்கள் கேள்விக்கு நன்றி ("${userMsg.text}"). தற்போதைய வானிலை எச்சரிக்கைகளின்படி, கடலோரப் பாதுகாப்பு வழிமுறைகளை பின்பற்றி பாதுகாப்பான துறைமுகங்களில் நங்கூரமிடுவது நல்லது. (முழு Gemini AI இணைப்பு விரைவில்).`
-          : `[Demo AI Response]: Thank you for your inquiry regarding "${userMsg.text}". Current weather bulletins advise maintaining strict harbour watch and lifejacket compliance. (Live Gemini API integration pending).`,
-        timestamp: 'Just now',
+        text: response.reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
+
       setMessages((prev) => [...prev, aiMsg]);
-    }, 500);
+      setActiveModel(response.model);
+    } catch (err) {
+      console.error('Chat error:', err);
+      let errText = isTamil
+        ? 'AI சேவையுடன் தொடர்பு கொள்ள முடியவில்லை.'
+        : 'Unable to connect to the CoastalGuard AI assistant.';
+      let actionText: string | undefined = undefined;
+
+      if (err instanceof ApiError) {
+        errText = err.message;
+        actionText = err.suggestedAction;
+      } else if (err instanceof Error) {
+        errText = err.message;
+      }
+
+      setErrorMessage({ text: errText, action: actionText });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleQuickPrompt = (prompt: { question: string; reply: string }) => {
-    const userMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'user',
-      text: prompt.question,
-      timestamp: 'Just now',
-    };
-
-    const aiMsg: ChatMessage = {
-      id: `msg-ai-${Date.now() + 1}`,
-      sender: 'assistant',
-      text: prompt.reply,
-      timestamp: 'Just now',
-    };
-
-    setMessages((prev) => [...prev, userMsg, aiMsg]);
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputText.trim() || isLoading) return;
+    const textToSend = inputText;
+    setInputText('');
+    executeChatQuery(textToSend);
   };
 
-  const isTamil = selectedLanguage === 'ta';
+  const handleQuickPrompt = (question: string) => {
+    if (isLoading) return;
+    executeChatQuery(question);
+  };
 
   return (
     <FishermanLayout>
       <PageHeader
-        title="Safety Alerts & AI Assistant"
-        subtitle="Official meteorological danger warnings, plain-language explanations, and bilingual AI safety guidance."
-        badge="Demonstration Assistant"
+        title={t('fisherman.assistantTitle')}
+        subtitle={t('fisherman.assistantSubtitle')}
+        badge={t('common.demoBadge')}
         action={
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <Languages size={18} color="var(--color-teal)" />
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-navy-primary)' }}>
-              Language:
-            </span>
-            <div style={{ display: 'inline-flex', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1.5px solid var(--color-teal)' }}>
-              <button
-                onClick={() => setSelectedLanguage('ta')}
-                style={{
-                  padding: '0.35rem 0.75rem',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  backgroundColor: isTamil ? 'var(--color-teal)' : '#ffffff',
-                  color: isTamil ? '#ffffff' : 'var(--color-navy-primary)',
-                }}
-              >
-                தமிழ் (Tamil)
-              </button>
-              <button
-                onClick={() => setSelectedLanguage('en')}
-                style={{
-                  padding: '0.35rem 0.75rem',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  backgroundColor: !isTamil ? 'var(--color-teal)' : '#ffffff',
-                  color: !isTamil ? '#ffffff' : 'var(--color-navy-primary)',
-                }}
-              >
-                English
-              </button>
-            </div>
+            <LanguageSelector />
           </div>
         }
       />
 
-      {/* Prototype Notice */}
+      {/* Live Gemini AI Integration Notice */}
       <div
         style={{
           display: 'flex',
@@ -179,7 +168,10 @@ export const SafetyAlertsAssistant: React.FC = () => {
       >
         <Info size={18} style={{ flexShrink: 0 }} />
         <div>
-          <strong>Static Simulation Notice:</strong> The conversational assistant responses below are predefined demonstration exchanges. Gemini API and live LLM inference will be integrated in future development.
+          <strong>{isTamil ? 'நேரடி Google Gemini AI ஒருங்கிணைப்பு:' : 'Live Google Gemini AI Integration:'}</strong>{' '}
+          {isTamil
+            ? 'இந்த உதவியாளர் FastAPI பின்தளம் வழியாக அதிகாரப்பூர்வ Google Gemini மாடலுடன் இணைக்கப்பட்டுள்ளது. உங்கள் கேள்விகளுக்கு நேரடி AI விளக்கம் அளிக்கப்படுகிறது.'
+            : 'This assistant is connected to Google Gemini via the FastAPI backend. User queries receive real-time explanations grounded in official coastal safety guidelines.'}
         </div>
       </div>
 
@@ -189,7 +181,7 @@ export const SafetyAlertsAssistant: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           <div className="card-base" style={{ padding: 'var(--space-5)' }}>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)', marginBottom: 'var(--space-3)' }}>
-              {isTamil ? 'அதிகாரப்பூர்வ கடல் எச்சரிக்கைகள்' : 'Official Marine Bulletins'}
+              {t('fisherman.officialBulletins')}
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
@@ -208,6 +200,7 @@ export const SafetyAlertsAssistant: React.FC = () => {
                     backgroundColor: selectedAlert.id === alert.id ? 'var(--color-teal-soft)' : 'var(--color-surface-white)',
                     textAlign: 'left',
                     transition: 'all var(--transition-fast)',
+                    cursor: 'pointer',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -285,17 +278,19 @@ export const SafetyAlertsAssistant: React.FC = () => {
               </div>
               <div>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-navy-primary)' }}>
-                  {isTamil ? 'பாதுகாப்பு AI உதவியாளர்' : 'Safety AI Assistant'}
+                  {t('fisherman.chatHeader')}
                 </h3>
                 <span style={{ fontSize: '0.75rem', color: 'var(--color-teal)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#10b981' }} />
-                  {isTamil ? 'ஆலோசனைக்கு தயார் (Prototype)' : 'Ready for Guidance (Prototype)'}
+                  {activeModel
+                    ? `Gemini (${activeModel})`
+                    : (isTamil ? 'Gemini AI பாதுகாப்பு வழிகாட்டி' : 'Gemini AI Assistant Ready')}
                 </span>
               </div>
             </div>
 
             <span className="badge-prototype">
-              <Sparkles size={11} /> Demonstration Mode
+              <Sparkles size={11} /> {activeModel || 'Gemini AI'}
             </span>
           </div>
 
@@ -335,6 +330,7 @@ export const SafetyAlertsAssistant: React.FC = () => {
                       fontSize: '0.9rem',
                       lineHeight: 1.5,
                       boxShadow: 'var(--shadow-xs)',
+                      whiteSpace: 'pre-wrap',
                     }}
                   >
                     {msg.text}
@@ -346,19 +342,101 @@ export const SafetyAlertsAssistant: React.FC = () => {
                 </div>
               );
             })}
+
+            {/* Loading Indicator while Gemini is thinking */}
+            {isLoading && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '0.75rem 1rem',
+                  borderRadius: 'var(--radius-lg) var(--radius-lg) var(--radius-lg) var(--radius-xs)',
+                  backgroundColor: 'var(--color-bg-alt)',
+                  border: '1px solid var(--color-border-light)',
+                  width: 'fit-content',
+                  color: 'var(--color-navy-primary)',
+                  fontSize: '0.85rem',
+                  boxShadow: 'var(--shadow-xs)',
+                }}
+              >
+                <Loader2 size={16} className="animate-spin" style={{ color: 'var(--color-teal)' }} />
+                <span>
+                  {isTamil
+                    ? 'பாதுகாப்பு உதவியாளர் பதிலளிக்கிறார்...'
+                    : 'CoastalGuard AI is generating response...'}
+                </span>
+              </div>
+            )}
+
+            {/* Error Banner with Retry Button */}
+            {errorMessage && (
+              <div
+                style={{
+                  margin: 'var(--space-2) 0',
+                  padding: '0.75rem 1rem',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.35rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#991b1b', fontWeight: 700, fontSize: '0.85rem' }}>
+                    <AlertTriangle size={16} />
+                    <span>{isTamil ? 'AI சேவை பிழை' : 'AI Assistant Notice'}</span>
+                  </div>
+                  {lastQuery && (
+                    <button
+                      type="button"
+                      onClick={() => executeChatQuery(lastQuery)}
+                      disabled={isLoading}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: '#991b1b',
+                        backgroundColor: '#fee2e2',
+                        border: '1px solid #fca5a5',
+                        padding: '0.2rem 0.6rem',
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <RotateCcw size={13} /> {isTamil ? 'மீண்டும் முயற்சி' : 'Retry'}
+                    </button>
+                  )}
+                </div>
+                <div style={{ fontSize: '0.82rem', color: '#7f1d1d' }}>
+                  {errorMessage.text}
+                </div>
+                {errorMessage.action && (
+                  <div style={{ fontSize: '0.75rem', color: '#991b1b', fontStyle: 'italic', backgroundColor: '#ffffff', padding: '0.35rem 0.6rem', borderRadius: '4px', border: '1px solid #fee2e2' }}>
+                    💡 {errorMessage.action}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Quick Prompts Suggestions */}
           <div style={{ marginBottom: 'var(--space-3)' }}>
             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.35rem', fontWeight: 600 }}>
-              {isTamil ? 'விரைவு கேள்விகள் (Quick Prompts):' : 'Suggested Questions:'}
+              {t('fisherman.quickQuestions')}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
               {quickPrompts.map((p, idx) => (
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => handleQuickPrompt(p)}
+                  disabled={isLoading}
+                  onClick={() => handleQuickPrompt(p.question)}
                   style={{
                     fontSize: '0.75rem',
                     fontWeight: 600,
@@ -367,10 +445,12 @@ export const SafetyAlertsAssistant: React.FC = () => {
                     backgroundColor: 'var(--color-ocean-soft)',
                     color: 'var(--color-ocean-blue)',
                     border: '1px solid rgba(2, 132, 199, 0.25)',
-                    cursor: 'pointer',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    opacity: isLoading ? 0.6 : 1,
+                    transition: 'all var(--transition-fast)',
                   }}
                 >
-                  {isTamil ? p.labelTa : p.labelEn}
+                  {p.label}
                 </button>
               ))}
             </div>
@@ -388,24 +468,39 @@ export const SafetyAlertsAssistant: React.FC = () => {
           >
             <input
               type="text"
-              placeholder={isTamil ? 'உங்கள் கேள்வியை இங்கே தட்டச்சு செய்யவும்...' : 'Ask about wind, swell, or fishing safety...'}
+              placeholder={isLoading ? (isTamil ? 'பதில் பெறப்படுகிறது...' : 'Generating response...') : t('fisherman.inputPlaceholder')}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
+              disabled={isLoading}
               style={{
                 flex: 1,
                 padding: '0.7rem 1rem',
                 borderRadius: 'var(--radius-md)',
                 border: '1.5px solid var(--color-border-subtle)',
                 fontSize: '0.9rem',
+                backgroundColor: isLoading ? 'var(--color-bg-alt)' : '#ffffff',
+                cursor: isLoading ? 'not-allowed' : 'text',
               }}
             />
             <button
               type="submit"
               className="btn btn-accent"
-              style={{ padding: '0.7rem 1.25rem' }}
+              disabled={isLoading || !inputText.trim()}
+              style={{
+                padding: '0.7rem 1.25rem',
+                opacity: isLoading || !inputText.trim() ? 0.6 : 1,
+                cursor: isLoading || !inputText.trim() ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
             >
-              <Send size={18} />
-              <span>{isTamil ? 'அனுப்புக' : 'Send'}</span>
+              {isLoading ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Send size={18} />
+              )}
+              <span>{t('fisherman.send')}</span>
             </button>
           </form>
         </div>
@@ -413,3 +508,4 @@ export const SafetyAlertsAssistant: React.FC = () => {
     </FishermanLayout>
   );
 };
+export default SafetyAlertsAssistant;

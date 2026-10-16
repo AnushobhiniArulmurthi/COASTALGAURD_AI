@@ -1,21 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Compass,
   Radio,
   AlertTriangle,
   Search,
-  Sparkles
+  Sparkles,
+  Navigation,
+  Move
 } from 'lucide-react';
+import L from 'leaflet';
 import { AdminLayout } from '../../../components/layout/AdminLayout';
 import { PageHeader } from '../../../components/common/PageHeader';
 import { StatusBadge } from '../../../components/common/StatusBadge';
-import { mockVessels } from '../../../data/mockData';
+import { mockVessels, mockHarbours } from '../../../data/mockData';
+import { useLanguage } from '../../../i18n/LanguageContext';
 import type { VesselReport } from '../../../types';
 
 export const BoatRegionalMonitoring: React.FC = () => {
+  const { t, language } = useLanguage();
   const [filterPort, setFilterPort] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVessel, setSelectedVessel] = useState<VesselReport | null>(mockVessels[0]);
+
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const vesselMarkersRef = useRef<Map<string, L.Marker>>(new Map());
 
   const filteredVessels = mockVessels.filter((vessel) => {
     const matchesPort =
@@ -27,16 +36,141 @@ export const BoatRegionalMonitoring: React.FC = () => {
     return matchesPort && matchesSearch;
   });
 
+  // Initialize interactive Leaflet map
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapContainerRef.current, {
+        center: [10.2, 79.2],
+        zoom: 7,
+        dragging: true,
+        touchZoom: true,
+        scrollWheelZoom: true,
+        doubleClickZoom: true,
+        boxZoom: true,
+        keyboard: true,
+      });
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 18,
+      }).addTo(map);
+
+      // Add Harbours
+      mockHarbours.forEach((port) => {
+        const portIcon = L.divIcon({
+          className: 'custom-admin-harbour-pin',
+          html: `<div style="background-color: #0369a1; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.35); font-size: 13px;">⚓</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        });
+
+        const marker = L.marker(port.coordinates, { icon: portIcon }).addTo(map);
+        marker.bindPopup(`
+          <div style="font-family: inherit; padding: 4px; min-width: 150px;">
+            <strong style="color: #0b192c; font-size: 13px;">${port.name}</strong><br/>
+            <span style="color: #0284c7; font-size: 11px;">${port.tamilName || ''}</span><br/>
+            <span style="font-size: 11px; color: #64748b;">${t('admin.radioChannel')}: ${port.vhfEmergencyChannel}</span><br/>
+            <span style="font-size: 11px; font-weight: bold; color: ${port.status === 'Open' ? '#10b981' : '#f59e0b'};">${t('admin.signalStatus')}: ${port.status}</span>
+          </div>
+        `);
+      });
+
+      // Add Danger Polygon in Gulf of Mannar
+      const cautionPolygon = L.polygon(
+        [
+          [9.35, 78.85],
+          [9.45, 79.55],
+          [8.85, 79.45],
+          [8.55, 78.35],
+        ],
+        {
+          color: '#ef4444',
+          weight: 2,
+          dashArray: '6, 6',
+          fillColor: '#ef4444',
+          fillOpacity: 0.15,
+        }
+      ).addTo(map);
+
+      cautionPolygon.bindPopup(`
+        <div style="font-family: inherit; padding: 4px;">
+          <strong style="color: #b91c1c;">${language === 'ta' ? 'புயல் அலை எச்சரிக்கை மண்டலம் (பகுதி 4)' : 'Gale Swell Caution Zone (Sector 4)'}</strong><br/>
+          <span style="font-size: 11px; color: #64748b;">Gulf of Mannar — High Wave Surge Advisory</span>
+        </div>
+      `);
+
+      // Add Vessel Markers
+      vesselMarkersRef.current.clear();
+      mockVessels.forEach((v) => {
+        const color =
+          v.status === 'sample' ? '#10b981' : v.status === 'stale' ? '#f59e0b' : '#ef4444';
+        const vesselIcon = L.divIcon({
+          className: 'custom-admin-vessel-pin',
+          html: `<div style="background-color: ${color}; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); font-size: 15px; cursor: pointer;">🚤</div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
+        const marker = L.marker(v.coordinates, { icon: vesselIcon }).addTo(map);
+        marker.bindPopup(`
+          <div style="font-family: inherit; padding: 4px; min-width: 160px;">
+            <strong style="color: #0b192c; font-size: 13px;">${v.boatName}</strong><br/>
+            <span style="font-size: 11px; color: #64748b;">Reg: ${v.registrationNumber}</span><br/>
+            <span style="font-size: 11px; color: #0284c7;">${v.ownerName}</span><br/>
+            <span style="font-size: 11px; font-weight: bold; color: ${color};">${v.lastReportedTime}</span>
+          </div>
+        `);
+
+        marker.on('click', () => {
+          setSelectedVessel(v);
+        });
+
+        vesselMarkersRef.current.set(v.id, marker);
+      });
+
+      mapInstanceRef.current = map;
+    }
+
+    // Invalidate size to guarantee smooth render
+    const timer = setTimeout(() => {
+      mapInstanceRef.current?.invalidateSize();
+    }, 250);
+
+    return () => {
+      clearTimeout(timer);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [language, t]);
+
+  const handleSelectVessel = (v: VesselReport) => {
+    setSelectedVessel(v);
+    if (mapInstanceRef.current && v.coordinates) {
+      mapInstanceRef.current.flyTo(v.coordinates, 9, { duration: 1.0 });
+      const marker = vesselMarkersRef.current.get(v.id);
+      if (marker) {
+        marker.openPopup();
+      }
+    }
+  };
+
   return (
     <AdminLayout>
       <PageHeader
-        title="Boat & Regional Monitoring"
-        subtitle="Regional fleet presence overview, coastal transponder signal freshness, and sample vessel beacons."
-        badge="Prototype — integration pending"
+        title={t('admin.boatTitle')}
+        subtitle={t('admin.boatSubtitle')}
+        badge={t('common.prototypeBadge')}
         action={
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-            <span className="badge-prototype" style={{ backgroundColor: '#e0f2fe', color: '#0369a1', borderColor: '#bae6fd' }}>
-              <Radio size={12} /> Fleet Telemetry Mock
+            <span
+              className="badge-prototype"
+              style={{ backgroundColor: '#e0f2fe', color: '#0369a1', borderColor: '#bae6fd' }}
+            >
+              <Radio size={12} /> {t('admin.fleetMock')}
             </span>
           </div>
         }
@@ -59,127 +193,104 @@ export const BoatRegionalMonitoring: React.FC = () => {
       >
         <AlertTriangle size={18} style={{ flexShrink: 0 }} />
         <div>
-          <strong>Disclaimer:</strong> Fictional demonstration vessels and coordinates are shown for architectural review. Actual satellite AIS transponders and coastal VHF beacons are not connected in this frontend prototype.
+          <strong>{language === 'ta' ? 'குறிப்பு:' : 'Disclaimer:'}</strong>{' '}
+          {language === 'ta'
+            ? 'வரைபடத்தின் மீது எந்த திசையிலும் (மேல், கீழ், இடது, வலது) இழுத்து நகர்த்தலாம். சோதனை நோக்கங்களுக்கான மாதிரி படகு ஆயங்கள் காட்டப்படுகின்றன.'
+            : 'Interactive maritime map can be dragged in all directions (up, down, left, right). Simulated vessel positions and coordinates are shown for demonstration.'}
         </div>
       </div>
 
       {/* Top Map Schematic & Selection Overview */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--space-6)', marginBottom: 'var(--space-6)' }}>
-        {/* Schematic Coastal Vector Map */}
-        <div className="card-base" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '2fr 1fr',
+          gap: 'var(--space-6)',
+          marginBottom: 'var(--space-6)',
+        }}
+      >
+        {/* Real Interactive Leaflet Marine Map */}
+        <div
+          className="card-base"
+          style={{ padding: 'var(--space-5)', display: 'flex', flexDirection: 'column' }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 'var(--space-3)',
+            }}
+          >
             <div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-                Regional Vessel Presence Map (Schematic)
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Navigation size={18} color="var(--color-ocean-blue)" />
+                <h3
+                  style={{
+                    fontSize: '1.15rem',
+                    fontWeight: 700,
+                    color: 'var(--color-navy-primary)',
+                  }}
+                >
+                  {language === 'ta'
+                    ? 'மண்டல படகு கண்காணிப்பு வரைபடம்'
+                    : 'Regional Vessel Presence Map'}
+                </h3>
+              </div>
               <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                Sample positions along Tamil Nadu coastline and Gulf of Mannar
+                {language === 'ta'
+                  ? 'தமிழ்நாடு கடற்கரை & மன்னார் வளைகுடா நேரலை செயற்கைக்கோள் வரைபடம்'
+                  : 'OpenStreetMap nautical view across Tamil Nadu & Gulf of Mannar'}
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
               <span className="badge-prototype">
-                <Sparkles size={11} /> Interactive Plot
+                <Sparkles size={11} /> {t('common.demoBadge')}
               </span>
             </div>
           </div>
 
-          {/* SVG Maritime Grid Map */}
+          {/* Map Leaflet Container */}
           <div
             style={{
               position: 'relative',
               width: '100%',
-              height: '320px',
-              backgroundColor: '#0a192f',
               borderRadius: 'var(--radius-lg)',
               overflow: 'hidden',
-              border: '1px solid #1e3a5f',
+              border: '1px solid var(--color-border-subtle)',
             }}
           >
-            <svg
-              viewBox="0 0 600 320"
-              style={{ width: '100%', height: '100%' }}
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+            <div
+              ref={mapContainerRef}
+              style={{
+                width: '100%',
+                height: '420px',
+                zIndex: 1,
+              }}
+            />
+
+            {/* Draggable hint indicator */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 10,
+                right: 10,
+                zIndex: 500,
+                background: 'rgba(15, 23, 42, 0.85)',
+                color: '#38bdf8',
+                padding: '4px 10px',
+                borderRadius: '9999px',
+                fontSize: '0.72rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                border: '1px solid rgba(56, 189, 248, 0.3)',
+                pointerEvents: 'none',
+              }}
             >
-              {/* Radar Grid Lines */}
-              <defs>
-                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#162e4f" strokeWidth="0.8" />
-                </pattern>
-              </defs>
-              <rect width="600" height="320" fill="url(#grid)" />
-
-              {/* Coastline Contour (Stylized South-East India Coastline) */}
-              <path
-                d="M 160 0 Q 180 60 190 110 T 210 180 Q 230 220 180 250 T 140 320 L 0 320 L 0 0 Z"
-                fill="#112240"
-                stroke="#233554"
-                strokeWidth="2"
-              />
-              <text x="50" y="80" fill="#64748b" fontSize="12" fontWeight="700">LAND MASS (TN)</text>
-              <text x="50" y="100" fill="#475569" fontSize="9">Mainland India</text>
-
-              {/* Coastal Harbours */}
-              <circle cx="190" cy="80" r="4" fill="#38bdf8" />
-              <text x="200" y="84" fill="#94a3b8" fontSize="10">Kasimedu (Chennai)</text>
-
-              <circle cx="210" cy="180" r="4" fill="#38bdf8" />
-              <text x="220" y="184" fill="#94a3b8" fontSize="10">Nagapattinam</text>
-
-              <circle cx="215" cy="235" r="5" fill="#2dd4bf" />
-              <text x="226" y="239" fill="#2dd4bf" fontSize="10" fontWeight="700">Rameswaram Harbour</text>
-
-              <circle cx="170" cy="275" r="4" fill="#38bdf8" />
-              <text x="180" y="279" fill="#94a3b8" fontSize="10">Tuticorin</text>
-
-              <circle cx="140" cy="310" r="4" fill="#ef4444" />
-              <text x="150" y="312" fill="#fca5a5" fontSize="10">Kanyakumari (Red Zone)</text>
-
-              {/* Danger Zone Polygon in Gulf of Mannar */}
-              <polygon
-                points="230,230 380,240 360,290 200,285"
-                fill="rgba(239, 68, 68, 0.15)"
-                stroke="#ef4444"
-                strokeWidth="1.5"
-                strokeDasharray="4 4"
-              />
-              <text x="270" y="265" fill="#f87171" fontSize="10" fontWeight="700">
-                GALE SWELL CAUTION (SECTOR 4)
-              </text>
-
-              {/* Plot Mock Vessels */}
-              {mockVessels.map((v, i) => {
-                // Map coordinates roughly onto SVG box
-                const positions = [
-                  { x: 300, y: 225 }, // Kadalarasan
-                  { x: 260, y: 75 },  // Meenatchi Ambal
-                  { x: 240, y: 275 }, // Alai Osai II
-                  { x: 190, y: 310 }, // Sea Queen Voyager
-                  { x: 330, y: 240 }, // Thirumalai Star
-                  { x: 280, y: 175 }, // Cauvery Matha
-                ];
-                const pos = positions[i] || { x: 250, y: 150 };
-                const isSelected = selectedVessel?.id === v.id;
-                const markerColor =
-                  v.status === 'sample' ? '#10b981' : v.status === 'stale' ? '#f59e0b' : '#ef4444';
-
-                return (
-                  <g
-                    key={v.id}
-                    onClick={() => setSelectedVessel(v)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {isSelected && (
-                      <circle cx={pos.x} cy={pos.y} r="14" stroke="#ffffff" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.8" />
-                    )}
-                    <circle cx={pos.x} cy={pos.y} r="6" fill={markerColor} stroke="#ffffff" strokeWidth="1.5" />
-                    <text x={pos.x + 10} y={pos.y + 4} fill="#ffffff" fontSize="9" fontWeight="600">
-                      {v.boatName.split(' ')[0]}
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
+              <Move size={12} />
+              <span>{language === 'ta' ? 'இழுத்து நகர்த்தலாம்' : 'Draggable Map'}</span>
+            </div>
 
             {/* Map Legend Overlay */}
             <div
@@ -187,7 +298,7 @@ export const BoatRegionalMonitoring: React.FC = () => {
                 position: 'absolute',
                 bottom: 12,
                 right: 12,
-                backgroundColor: 'rgba(11, 25, 44, 0.9)',
+                backgroundColor: 'rgba(11, 25, 44, 0.92)',
                 padding: '0.5rem 0.75rem',
                 borderRadius: 'var(--radius-sm)',
                 fontSize: '0.75rem',
@@ -196,106 +307,249 @@ export const BoatRegionalMonitoring: React.FC = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '4px',
+                zIndex: 500,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
               }}
             >
-              <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '2px' }}>Vessel Beacon Status</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#10b981' }} />
-                <span>Sample Synced (&lt; 30m)</span>
+              <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '2px' }}>
+                {language === 'ta' ? 'படகு சிக்னல் நிலை' : 'Vessel Beacon Status'}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-                <span>Stale Transponder (&gt; 2h)</span>
+                <span
+                  style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#10b981' }}
+                />
+                <span>
+                  {language === 'ta' ? 'செயலில் உள்ள சிக்னல் (<30நி)' : 'Sample Synced (< 30m)'}
+                </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#ef4444' }} />
-                <span>Unknown / Offline Signal</span>
+                <span
+                  style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#f59e0b' }}
+                />
+                <span>
+                  {language === 'ta' ? 'பழைய சிக்னல் (>2மணி)' : 'Stale Transponder (> 2h)'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span
+                  style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#ef4444' }}
+                />
+                <span>
+                  {language === 'ta' ? 'ஆஃப்லைன் / சிக்னல் இல்லை' : 'Unknown / Offline Signal'}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Selected Vessel Inspector Card */}
-        <div className="card-base" style={{ padding: 'var(--space-6)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div
+          className="card-base"
+          style={{
+            padding: 'var(--space-6)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: 'var(--space-2)' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                marginBottom: 'var(--space-2)',
+              }}
+            >
               <Compass size={20} color="var(--color-ocean-blue)" />
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-                Vessel Telemetry Card
+              <h3
+                style={{
+                  fontSize: '1.15rem',
+                  fontWeight: 700,
+                  color: 'var(--color-navy-primary)',
+                }}
+              >
+                {t('admin.vesselDetails')}
               </h3>
             </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
-              Click any vessel on the map or table to inspect details
+            <p
+              style={{
+                fontSize: '0.85rem',
+                color: 'var(--color-text-secondary)',
+                marginBottom: 'var(--space-4)',
+              }}
+            >
+              {language === 'ta'
+                ? 'விவரங்களை ஆய்வு செய்ய வரைபடம் அல்லது அட்டவணையில் ஒரு படகைக் கிளிக் செய்யவும்'
+                : 'Click any vessel on the map or table to inspect details'}
             </p>
 
             {selectedVessel ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                <div style={{ padding: '0.75rem', backgroundColor: 'var(--color-bg-alt)', borderRadius: 'var(--radius-md)' }}>
-                  <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--color-navy-primary)' }}>
+                <div
+                  style={{
+                    padding: '0.75rem',
+                    backgroundColor: 'var(--color-bg-alt)',
+                    borderRadius: 'var(--radius-md)',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '1.05rem',
+                      fontWeight: 800,
+                      color: 'var(--color-navy-primary)',
+                    }}
+                  >
                     {selectedVessel.boatName}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-                    Registration: {selectedVessel.registrationNumber}
+                    {t('admin.registration')}: {selectedVessel.registrationNumber}
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                  <span style={{ color: 'var(--color-text-secondary)' }}>Master / Owner:</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '0.85rem',
+                    padding: '0.4rem 0',
+                    borderBottom: '1px solid var(--color-border-light)',
+                  }}
+                >
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{t('admin.owner')}:</span>
                   <span style={{ fontWeight: 600 }}>{selectedVessel.ownerName}</span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                  <span style={{ color: 'var(--color-text-secondary)' }}>Home Port:</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '0.85rem',
+                    padding: '0.4rem 0',
+                    borderBottom: '1px solid var(--color-border-light)',
+                  }}
+                >
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{t('admin.homeHarbour')}:</span>
                   <span style={{ fontWeight: 600 }}>{selectedVessel.homePort}</span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                  <span style={{ color: 'var(--color-text-secondary)' }}>Reported Location:</span>
-                  <span style={{ fontWeight: 600, color: 'var(--color-ocean-blue)' }}>{selectedVessel.reportedLocation}</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '0.85rem',
+                    padding: '0.4rem 0',
+                    borderBottom: '1px solid var(--color-border-light)',
+                  }}
+                >
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{t('admin.coordinates')}:</span>
+                  <span style={{ fontWeight: 600, color: 'var(--color-ocean-blue)' }}>
+                    {selectedVessel.reportedLocation}
+                  </span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.4rem 0', borderBottom: '1px solid var(--color-border-light)' }}>
-                  <span style={{ color: 'var(--color-text-secondary)' }}>Signal Freshness:</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '0.85rem',
+                    padding: '0.4rem 0',
+                    borderBottom: '1px solid var(--color-border-light)',
+                  }}
+                >
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{t('admin.lastUpdated')}:</span>
                   <span style={{ fontWeight: 600 }}>{selectedVessel.lastReportedTime}</span>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', paddingTop: '0.2rem' }}>
-                  <span style={{ color: 'var(--color-text-secondary)' }}>Beacon Status:</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '0.85rem',
+                    paddingTop: '0.2rem',
+                  }}
+                >
+                  <span style={{ color: 'var(--color-text-secondary)' }}>{t('admin.signalStatus')}:</span>
                   <StatusBadge status={selectedVessel.status} size="sm" />
                 </div>
               </div>
             ) : (
               <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-                Select a craft to review coordinates and transponder health.
+                {language === 'ta'
+                  ? 'விவரங்களை ஆய்வு செய்ய ஒரு படகைத் தேர்ந்தெடுக்கவும்.'
+                  : 'Select a craft to review coordinates and transponder health.'}
               </p>
             )}
           </div>
 
-          <div style={{ marginTop: 'var(--space-4)', padding: '0.65rem', backgroundColor: '#f0fdf4', borderRadius: 'var(--radius-md)', border: '1px solid #bbf7d0', fontSize: '0.75rem', color: '#166534' }}>
-            ✓ Transponder integrity check passed (Simulation).
+          <div
+            style={{
+              marginTop: 'var(--space-4)',
+              padding: '0.65rem',
+              backgroundColor: '#f0fdf4',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid #bbf7d0',
+              fontSize: '0.75rem',
+              color: '#166534',
+            }}
+          >
+            ✓ {language === 'ta' ? 'டிரான்ஸ்பாண்டர் சிக்னல் சோதனை முடிந்தது (மாதிரி)' : 'Transponder integrity check passed (Simulation).'}
           </div>
         </div>
       </div>
 
       {/* Filterable Vessel Table */}
       <div className="card-base" style={{ padding: 'var(--space-6)' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-4)', marginBottom: 'var(--space-4)' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 'var(--space-4)',
+            marginBottom: 'var(--space-4)',
+          }}
+        >
           <div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-              Regional Fleet Location Reports
+            <h3
+              style={{
+                fontSize: '1.15rem',
+                fontWeight: 700,
+                color: 'var(--color-navy-primary)',
+              }}
+            >
+              {t('admin.vesselRoster')}
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-              Mock vessel positions across monitored fishing ports
+              {language === 'ta'
+                ? 'கண்காணிக்கப்படும் மீன்பிடித் துறைமுகங்களின் மாதிரி படகு நிலைகள்'
+                : 'Mock vessel positions across monitored fishing ports'}
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: 'var(--space-3)',
+            }}
+          >
             {/* Search Input */}
             <div style={{ position: 'relative' }}>
-              <Search size={16} style={{ position: 'absolute', left: 10, top: 10, color: 'var(--color-text-muted)' }} />
+              <Search
+                size={16}
+                style={{
+                  position: 'absolute',
+                  left: 10,
+                  top: 10,
+                  color: 'var(--color-text-muted)',
+                }}
+              />
               <input
                 type="text"
-                placeholder="Search boat or reg no..."
+                placeholder={t('admin.searchBoats')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
@@ -320,7 +574,7 @@ export const BoatRegionalMonitoring: React.FC = () => {
                 color: 'var(--color-navy-primary)',
               }}
             >
-              <option value="all">All Home Ports</option>
+              <option value="all">{t('admin.allPorts')}</option>
               <option value="Rameswaram">Rameswaram</option>
               <option value="Kasimedu">Kasimedu (Chennai)</option>
               <option value="Tuticorin">Tuticorin</option>
@@ -331,16 +585,28 @@ export const BoatRegionalMonitoring: React.FC = () => {
         </div>
 
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              textAlign: 'left',
+              fontSize: '0.875rem',
+            }}
+          >
             <thead>
-              <tr style={{ backgroundColor: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border-light)' }}>
-                <th style={{ padding: '0.75rem 1rem' }}>Boat & Reg Number</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Owner / Skipper</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Home Harbour</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Reported Location</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Last Reported</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Action</th>
+              <tr
+                style={{
+                  backgroundColor: 'var(--color-bg-alt)',
+                  borderBottom: '1px solid var(--color-border-light)',
+                }}
+              >
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.boatName')} & {t('admin.registration')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.owner')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.homeHarbour')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.coordinates')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.lastUpdated')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.signalStatus')}</th>
+                <th style={{ padding: '0.75rem 1rem' }}>{t('admin.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -349,18 +615,29 @@ export const BoatRegionalMonitoring: React.FC = () => {
                   key={v.id}
                   style={{
                     borderBottom: '1px solid var(--color-border-light)',
-                    backgroundColor: selectedVessel?.id === v.id ? 'rgba(2, 132, 199, 0.06)' : 'transparent',
+                    backgroundColor:
+                      selectedVessel?.id === v.id ? 'rgba(2, 132, 199, 0.06)' : 'transparent',
                     cursor: 'pointer',
                   }}
-                  onClick={() => setSelectedVessel(v)}
+                  onClick={() => handleSelectVessel(v)}
                 >
                   <td style={{ padding: '0.75rem 1rem' }}>
-                    <div style={{ fontWeight: 700, color: 'var(--color-navy-primary)' }}>{v.boatName}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{v.registrationNumber}</div>
+                    <div style={{ fontWeight: 700, color: 'var(--color-navy-primary)' }}>
+                      {v.boatName}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                      {v.registrationNumber}
+                    </div>
                   </td>
                   <td style={{ padding: '0.75rem 1rem' }}>{v.ownerName}</td>
                   <td style={{ padding: '0.75rem 1rem' }}>{v.homePort}</td>
-                  <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                  <td
+                    style={{
+                      padding: '0.75rem 1rem',
+                      fontFamily: 'monospace',
+                      fontSize: '0.8rem',
+                    }}
+                  >
                     {v.reportedLocation}
                   </td>
                   <td style={{ padding: '0.75rem 1rem', color: 'var(--color-text-secondary)' }}>
@@ -373,12 +650,12 @@ export const BoatRegionalMonitoring: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedVessel(v);
+                        handleSelectVessel(v);
                       }}
                       className="btn btn-outline btn-sm"
                       style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
                     >
-                      Inspect
+                      {language === 'ta' ? 'ஆய்வு செய்' : 'Inspect'}
                     </button>
                   </td>
                 </tr>
@@ -390,3 +667,4 @@ export const BoatRegionalMonitoring: React.FC = () => {
     </AdminLayout>
   );
 };
+export default BoatRegionalMonitoring;

@@ -18,9 +18,11 @@ import { PageHeader } from '../../components/common/PageHeader';
 import { StatCard } from '../../components/common/StatCard';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { mockMarineConditions, mockAlerts } from '../../data/mockData';
+import { useLanguage } from '../../i18n/LanguageContext';
 import styles from './AdminDashboard.module.css';
 
 export const AdminDashboard: React.FC = () => {
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
 
   const marineEntries = Object.values(mockMarineConditions);
@@ -29,14 +31,14 @@ export const AdminDashboard: React.FC = () => {
   return (
     <AdminLayout>
       <PageHeader
-        title="Admin Overview"
-        subtitle="High-level command telemetry, active advisories, and regional fishing craft status."
-        badge="Prototype — integration pending"
+        title={t('admin.overviewTitle')}
+        subtitle={t('admin.overviewSubtitle')}
+        badge={t('common.prototypeBadge')}
         action={
           <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
             <Link to="/admin/risk-alerts" className="btn btn-primary btn-sm">
               <ShieldAlert size={16} />
-              <span>Broadcast Alert</span>
+              <span>{t('admin.broadcastAlert')}</span>
             </Link>
           </div>
         }
@@ -59,49 +61,50 @@ export const AdminDashboard: React.FC = () => {
       >
         <Info size={18} style={{ flexShrink: 0 }} />
         <div>
-          <strong>College Review Demonstration Note:</strong> All values, telemetry trends, and vessel beacons displayed below are generated sample values. Real satellite and radar data feeds will be connected during backend integration.
+          <strong>{language === 'ta' ? 'கல்லூரி மதிப்பாய்வு குறிப்பு:' : 'Demonstration Note:'}</strong>{' '}
+          {t('admin.prototypeNotice')}
         </div>
       </div>
 
       {/* 4 Summary Cards */}
       <div className={styles.dashboardGrid}>
         <StatCard
-          title="Coastal Regions Monitored"
+          title={t('admin.statRegions')}
           value="5"
-          unit="Sectors"
-          subtitle="Tamil Nadu & Coromandel Zone"
+          unit={t('hero.metricSectors')}
+          subtitle={t('admin.statRegionsSub')}
           icon={<Compass size={22} />}
           accentColor="var(--color-navy-primary)"
           onClick={() => navigate('/admin/marine-monitoring')}
         />
 
         <StatCard
-          title="Active Marine Warnings"
+          title={t('admin.statAlerts')}
           value={activeAlerts.length}
-          unit="Bulletins"
-          subtitle="1 Extreme • 1 High • 1 Moderate"
+          unit={language === 'ta' ? 'அறிக்கைகள்' : 'Bulletins'}
+          subtitle={t('admin.statAlertsSub')}
           icon={<AlertTriangle size={22} />}
           accentColor="var(--color-danger)"
-          trend={{ value: '3 Active Now', isPositive: false }}
+          trend={{ value: language === 'ta' ? '3 எச்சரிக்கைகள்' : '3 Active Now', isPositive: false }}
           onClick={() => navigate('/admin/risk-alerts')}
         />
 
         <StatCard
-          title="Boats with Location Reports"
+          title={t('admin.statBoats')}
           value="148"
-          unit="Vessels"
-          subtitle="6 sample transponders online"
+          unit={t('fisherman.crafts')}
+          subtitle={t('admin.statBoatsSub')}
           icon={<Radio size={22} />}
           accentColor="var(--color-teal)"
-          trend={{ value: '+12 from yesterday', isPositive: true }}
+          trend={{ value: language === 'ta' ? '+12 நேற்றையிலிருந்து' : '+12 from yesterday', isPositive: true }}
           onClick={() => navigate('/admin/boat-monitoring')}
         />
 
         <StatCard
-          title="Registered Fishermen"
+          title={t('admin.statFishermen')}
           value="1,420"
-          unit="Users"
-          subtitle="Enrolled across 5 coastal ports"
+          unit={language === 'ta' ? 'பயனர்கள்' : 'Users'}
+          subtitle={t('admin.statFishermenSub')}
           icon={<Users size={22} />}
           accentColor="var(--color-ocean-blue)"
           onClick={() => navigate('/admin/users')}
@@ -115,14 +118,16 @@ export const AdminDashboard: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
             <div>
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-                Marine Conditions Overview
+                {t('admin.conditionsOverview')}
               </h3>
               <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-                Sample oceanographic readings across primary fishing zones
+                {language === 'ta'
+                  ? 'முதன்மை மீன்பிடி மண்டலங்களின் கடல்சார் அளவீடுகள்'
+                  : 'Sample oceanographic readings across primary fishing zones'}
               </p>
             </div>
             <Link to="/admin/marine-monitoring" className="btn btn-outline btn-sm">
-              <span>Detailed Telemetry</span>
+              <span>{t('admin.viewFullModule')}</span>
               <ArrowRight size={14} />
             </Link>
           </div>
@@ -131,11 +136,11 @@ export const AdminDashboard: React.FC = () => {
             <table className={styles.adminTable}>
               <thead>
                 <tr>
-                  <th>Region / Sector</th>
-                  <th>Wave Height</th>
-                  <th>Wind Velocity</th>
-                  <th>Risk Level</th>
-                  <th>Action</th>
+                  <th>{t('admin.sector')}</th>
+                  <th>{t('admin.wave')}</th>
+                  <th>{t('admin.wind')}</th>
+                  <th>{t('admin.risk')}</th>
+                  <th>{t('admin.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -154,7 +159,7 @@ export const AdminDashboard: React.FC = () => {
                         {region.waveHeightMeters}m
                       </span>{' '}
                       <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                        ({region.swellPeriodSeconds}s swell)
+                        ({region.swellPeriodSeconds}s {t('admin.swellPeriod')})
                       </span>
                     </td>
                     <td>
@@ -173,7 +178,7 @@ export const AdminDashboard: React.FC = () => {
                         style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
                       >
                         <Eye size={12} />
-                        <span>Inspect</span>
+                        <span>{language === 'ta' ? 'ஆய்வு' : 'Inspect'}</span>
                       </Link>
                     </td>
                   </tr>
@@ -189,11 +194,13 @@ export const AdminDashboard: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: 'var(--space-2)' }}>
               <Activity size={18} color="var(--color-ocean-blue)" />
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-                Telemetry Infrastructure
+                {t('admin.systemActivity')}
               </h3>
             </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-4)' }}>
-              Integrated satellite and shore radar interface status
+              {language === 'ta'
+                ? 'ஒருங்கிணைந்த செயற்கைக்கோள் & ரேடார் இடைமுக நிலை'
+                : 'Integrated satellite and shore radar interface status'}
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -208,11 +215,15 @@ export const AdminDashboard: React.FC = () => {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>Coastal Radar Link</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Chennai & Karaikal Doppler</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                    {language === 'ta' ? 'கடலோர ரேடார் இணைப்பு' : 'Coastal Radar Link'}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                    Chennai & Karaikal Doppler
+                  </div>
                 </div>
                 <span className="badge-prototype" style={{ backgroundColor: '#dcfce7', color: '#166534', borderColor: '#bbf7d0' }}>
-                  <CheckCircle2 size={12} /> Simulated
+                  <CheckCircle2 size={12} /> {t('common.demoBadge')}
                 </span>
               </div>
 
@@ -227,11 +238,15 @@ export const AdminDashboard: React.FC = () => {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>VHF Emergency Channel 16</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Continuous Watch Stand</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                    {language === 'ta' ? 'VHF அவசர அலைவரிசை 16' : 'VHF Emergency Channel 16'}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                    {language === 'ta' ? 'தொடர் கண்காணிப்பு' : 'Continuous Watch Stand'}
+                  </div>
                 </div>
                 <span className="badge-prototype" style={{ backgroundColor: '#dcfce7', color: '#166534', borderColor: '#bbf7d0' }}>
-                  <CheckCircle2 size={12} /> Active
+                  <CheckCircle2 size={12} /> {t('admin.active')}
                 </span>
               </div>
 
@@ -246,11 +261,15 @@ export const AdminDashboard: React.FC = () => {
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>INCOIS Swell Model Sync</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Updated 8 mins ago</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                    {language === 'ta' ? 'INCOIS அலை மாதிரி ஒத்திசைவு' : 'INCOIS Swell Model Sync'}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+                    {language === 'ta' ? '8 நிமிடங்களுக்கு முன் புதுப்பிக்கப்பட்டது' : 'Updated 8 mins ago'}
+                  </div>
                 </div>
                 <span className="badge-prototype">
-                  <Clock size={12} /> Sample
+                  <Clock size={12} /> {t('common.demoBadge')}
                 </span>
               </div>
             </div>
@@ -258,7 +277,7 @@ export const AdminDashboard: React.FC = () => {
 
           <div style={{ marginTop: 'var(--space-6)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--color-border-light)' }}>
             <Link to="/admin/boat-monitoring" className="btn btn-outline" style={{ width: '100%', justifyContent: 'space-between' }}>
-              <span>View Fleet Tracker</span>
+              <span>{t('admin.boatPresence')}</span>
               <ArrowRight size={16} />
             </Link>
           </div>
@@ -270,14 +289,16 @@ export const AdminDashboard: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
           <div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-              Recent Safety Alerts & Announcements
+              {t('admin.activeWarnings')}
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-              Official warnings currently active on fisherman safety portals
+              {language === 'ta'
+                ? 'மீனவர் போர்ட்டல்களில் தற்போது செயலில் உள்ள அதிகாரப்பூர்வ எச்சரிக்கைகள்'
+                : 'Official warnings currently active on fisherman safety portals'}
             </p>
           </div>
           <Link to="/admin/risk-alerts" className="btn btn-outline btn-sm">
-            <span>Manage All Alerts</span>
+            <span>{t('admin.viewFullModule')}</span>
             <ArrowRight size={14} />
           </Link>
         </div>
@@ -322,7 +343,7 @@ export const AdminDashboard: React.FC = () => {
                   justifyContent: 'space-between',
                 }}
               >
-                <span>Region: {alert.coastalRegion}</span>
+                <span>{t('admin.sector')}: {alert.coastalRegion}</span>
                 <span>Ref: {alert.bulletinId}</span>
               </div>
             </div>
@@ -332,3 +353,4 @@ export const AdminDashboard: React.FC = () => {
     </AdminLayout>
   );
 };
+export default AdminDashboard;
