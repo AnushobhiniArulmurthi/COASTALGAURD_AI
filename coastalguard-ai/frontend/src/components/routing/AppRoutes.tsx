@@ -13,6 +13,7 @@ import { MarineMonitoring } from '../../pages/admin/modules/MarineMonitoring';
 import { BoatRegionalMonitoring } from '../../pages/admin/modules/BoatRegionalMonitoring';
 import { RiskAlertManagement } from '../../pages/admin/modules/RiskAlertManagement';
 import { UserManagement } from '../../pages/admin/modules/UserManagement';
+import { EmergencySosManagement } from '../../pages/admin/modules/EmergencySosManagement';
 
 // Fisherman Pages & Modules
 import { FishermanDashboard } from '../../pages/fisherman/FishermanDashboard';
@@ -108,6 +109,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/admin/boat-monitoring" element={<BoatRegionalMonitoring />} />
       <Route path="/admin/risk-alerts" element={<RiskAlertManagement />} />
       <Route path="/admin/users" element={<UserManagement />} />
+      <Route path="/admin/emergency-sos" element={<EmergencySosManagement />} />
 
       {/* Fisherman Portal & Modules */}
       <Route path="/fisherman/dashboard" element={<FishermanDashboard />} />

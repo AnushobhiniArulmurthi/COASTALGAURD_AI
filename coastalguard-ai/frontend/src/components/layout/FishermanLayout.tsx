@@ -14,6 +14,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { Logo } from '../common/Logo';
+import { OneTapSosButton } from '../common/OneTapSosButton';
 
 interface FishermanLayoutProps {
   children: React.ReactNode;
@@ -323,6 +324,9 @@ export const FishermanLayout: React.FC<FishermanLayoutProps> = ({ children }) =>
 
           {/* Right Header Badges & Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            {/* One-Tap Emergency SOS Trigger */}
+            <OneTapSosButton variant="header" userId="usr-101" />
+
             <span
               style={{
                 display: 'none',

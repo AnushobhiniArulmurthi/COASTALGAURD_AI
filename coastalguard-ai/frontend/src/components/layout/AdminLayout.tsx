@@ -11,9 +11,12 @@ import {
   X,
   Bell,
   ShieldCheck,
-  ChevronRight
+  ShieldAlert,
+  ChevronRight,
+  Languages
 } from 'lucide-react';
 import { Logo } from '../common/Logo';
+import { useAdminLanguage } from '../../context/AdminLanguageContext';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -22,32 +25,38 @@ interface AdminLayoutProps {
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const { language, setLanguage, t } = useAdminLanguage();
   const navigate = useNavigate();
   const location = useLocation();
 
   const navItems = [
     {
-      title: 'Dashboard',
+      title: t('admin.nav_dashboard', 'Dashboard'),
       path: '/admin/dashboard',
       icon: <LayoutDashboard size={20} />,
     },
     {
-      title: 'Marine Monitoring',
+      title: t('admin.nav_emergency_sos', 'Emergency SOS'),
+      path: '/admin/emergency-sos',
+      icon: <ShieldAlert size={20} color="#ef4444" />,
+    },
+    {
+      title: t('admin.nav_marine_monitoring', 'Marine Monitoring'),
       path: '/admin/marine-monitoring',
       icon: <CloudSun size={20} />,
     },
     {
-      title: 'Boat & Regional Monitoring',
+      title: t('admin.nav_boat_monitoring', 'Boat & Regional Monitoring'),
       path: '/admin/boat-monitoring',
       icon: <Compass size={20} />,
     },
     {
-      title: 'Risk & Alert Management',
+      title: t('admin.nav_risk_alerts', 'Risk & Alert Management'),
       path: '/admin/risk-alerts',
       icon: <AlertTriangle size={20} />,
     },
     {
-      title: 'User Management',
+      title: t('admin.nav_users', 'User Management'),
       path: '/admin/users',
       icon: <Users size={20} />,
     },
@@ -59,7 +68,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   const getPageTitle = () => {
     const current = navItems.find((item) => item.path === location.pathname);
-    return current ? current.title : 'Admin Command Console';
+    return current ? current.title : t('admin.portal_subtitle', 'Admin Command Console');
   };
 
   return (
@@ -144,10 +153,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>
-              Authority Operations
+              {t('admin.portal_title', 'Authority Operations')}
             </div>
             <div style={{ fontSize: '0.7rem', color: '#38bdf8' }}>
-              Coastal Command Console
+              {t('admin.portal_subtitle', 'Coastal Command Console')}
             </div>
           </div>
         </div>
@@ -173,7 +182,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               color: 'var(--color-text-inverse-muted)',
             }}
           >
-            Command Modules
+            {t('admin.command_modules', 'Command Modules')}
           </div>
 
           {navItems.map((item) => (
@@ -238,10 +247,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               </div>
               <div>
                 <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff' }}>
-                  Commander V. Nair
+                  {t('admin.commander_name', 'Commander V. Nair')}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-                  Coast Guard Maritime Ops
+                  {t('admin.commander_role', 'Coast Guard Maritime Ops')}
                 </div>
               </div>
             </div>
@@ -266,7 +275,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             }}
           >
             <LogOut size={16} />
-            <span>Logout to Home</span>
+            <span>{t('admin.logout', 'Logout to Home')}</span>
           </button>
         </div>
       </aside>
@@ -323,9 +332,57 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
           {/* Right Header Badges & Actions */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-            <span className="badge-prototype prototype-chip" style={{ display: 'none' }}>
-              Demo Console
-            </span>
+            {/* English / Tamil Selector */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: 'var(--color-bg-alt)',
+                borderRadius: 'var(--radius-full)',
+                border: '1.5px solid var(--color-border-subtle)',
+                padding: '2px',
+                gap: '2px',
+              }}
+              title="Select Admin Portal Language / மொழியைத் தேர்ந்தெடுக்கவும்"
+            >
+              <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '6px', paddingRight: '2px', color: 'var(--color-navy-primary)' }}>
+                <Languages size={15} />
+              </div>
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                style={{
+                  padding: '0.25rem 0.65rem',
+                  borderRadius: 'var(--radius-full)',
+                  border: 'none',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  backgroundColor: language === 'en' ? 'var(--color-navy-primary)' : 'transparent',
+                  color: language === 'en' ? '#ffffff' : 'var(--color-text-secondary)',
+                  transition: 'all var(--transition-fast)',
+                }}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('ta')}
+                style={{
+                  padding: '0.25rem 0.65rem',
+                  borderRadius: 'var(--radius-full)',
+                  border: 'none',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  backgroundColor: language === 'ta' ? 'var(--color-ocean-blue)' : 'transparent',
+                  color: language === 'ta' ? '#ffffff' : 'var(--color-text-secondary)',
+                  transition: 'all var(--transition-fast)',
+                }}
+              >
+                தமிழ்
+              </button>
+            </div>
 
             {/* Notification bell */}
             <div style={{ position: 'relative' }}>
@@ -375,13 +432,13 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-3)' }}>
                     <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-navy-primary)' }}>
-                      Active Alerts (3)
+                      {t('admin.active_alerts_title', 'Active Alerts')} (3)
                     </span>
                     <button
                       onClick={() => setShowNotifications(false)}
                       style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}
                     >
-                      Close
+                      {t('admin.close', 'Close')}
                     </button>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8rem' }}>

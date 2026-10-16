@@ -16,6 +16,7 @@ import { PageHeader } from '../../components/common/PageHeader';
 import { StatCard } from '../../components/common/StatCard';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { mockMarineConditions, mockHarbours } from '../../data/mockData';
+import { OneTapSosButton } from '../../components/common/OneTapSosButton';
 import styles from './FishermanDashboard.module.css';
 
 export const FishermanDashboard: React.FC = () => {
@@ -58,6 +59,11 @@ export const FishermanDashboard: React.FC = () => {
           </div>
         }
       />
+
+      {/* ONE-TAP EMERGENCY SOS TRIGGER */}
+      <div style={{ marginBottom: 'var(--space-6)' }}>
+        <OneTapSosButton variant="hero" userId="usr-101" />
+      </div>
 
       {/* Prominent Safety Status Panel */}
       <div className={styles.safetyAlertBanner}>

@@ -99,7 +99,7 @@ export const MyProfile: React.FC = () => {
       >
         <Info size={18} style={{ flexShrink: 0 }} />
         <div>
-          <strong>Local Prototype Mode:</strong> Changes are saved to component state for demonstration during reviews. No backend database or Supabase credentials are connected.
+          <strong>Profile Management:</strong> Review and manage your registered vessel identity, home fishing harbour, and emergency contacts.
         </div>
       </div>
 

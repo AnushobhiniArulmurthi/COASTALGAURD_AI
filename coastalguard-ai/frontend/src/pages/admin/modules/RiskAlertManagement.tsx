@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   AlertTriangle,
   PlusCircle,
@@ -6,58 +6,87 @@ import {
   CheckCircle,
   X,
   BellRing,
-  Info,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 import { AdminLayout } from '../../../components/layout/AdminLayout';
 import { PageHeader } from '../../../components/common/PageHeader';
 import { StatusBadge } from '../../../components/common/StatusBadge';
-import { mockAlerts as initialAlerts } from '../../../data/mockData';
+import { alertService } from '../../../services/alertService';
+import { useAdminLanguage } from '../../../context/AdminLanguageContext';
 import type { SafetyAlert, SeverityLevel } from '../../../types';
 
 export const RiskAlertManagement: React.FC = () => {
-  const [alerts, setAlerts] = useState<SafetyAlert[]>(initialAlerts);
+  const { t, language } = useAdminLanguage();
+  const [alerts, setAlerts] = useState<SafetyAlert[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
   // Form State
   const [title, setTitle] = useState('');
+  const [titleTamil, setTitleTamil] = useState('');
   const [message, setMessage] = useState('');
+  const [messageTamil, setMessageTamil] = useState('');
   const [coastalRegion, setCoastalRegion] = useState('Gulf of Mannar');
   const [severity, setSeverity] = useState<SeverityLevel>('high');
   const [recommendedAction, setRecommendedAction] = useState('Return to nearest designated harbour immediately.');
+  const [recommendedActionTamil] = useState('அருகிலுள்ள துறைமுகத்திற்கு உடனடியாக திரும்பவும்.');
 
-  const handleCreateAnnouncement = (e: React.FormEvent) => {
+  const fetchAlerts = useCallback(async (isSilent = false) => {
+    if (!isSilent) setIsLoading(true);
+    else setIsRefreshing(true);
+
+    try {
+      const result = await alertService.getAlerts();
+      setAlerts(result.alerts);
+    } catch {
+      // Ignore errors silently
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAlerts();
+  }, [fetchAlerts]);
+
+  const handleCreateAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim() || !message.trim()) {
       return;
     }
 
-    const newAlert: SafetyAlert = {
-      id: `alert-demo-${Date.now()}`,
+    const alertPayload: Partial<SafetyAlert> = {
       title,
+      titleTamil: titleTamil || title,
       message,
+      messageTamil: messageTamil || message,
       coastalRegion,
       severity,
-      issuedAt: 'Just now (Prototype draft)',
-      validUntil: 'Next 24 Hours',
-      bulletinId: `CG-IN-2026-${Math.floor(100 + Math.random() * 900)}`,
-      isActive: true,
       recommendedAction,
+      recommendedActionTamil: recommendedActionTamil || recommendedAction,
     };
 
-    setAlerts([newAlert, ...alerts]);
+    const res = await alertService.createAlert(alertPayload);
+    setAlerts([res.alert, ...alerts]);
     setIsModalOpen(false);
 
     // Reset Form
     setTitle('');
+    setTitleTamil('');
     setMessage('');
+    setMessageTamil('');
 
-    setSuccessToast(`Announcement "${newAlert.title}" published to prototype demo state.`);
+    const toastMsg = `Announcement "${res.alert.title}" published successfully.`;
+
+    setSuccessToast(toastMsg);
     setTimeout(() => {
       setSuccessToast(null);
-    }, 4000);
+    }, 4500);
   };
 
   const countBySeverity = {
@@ -70,18 +99,30 @@ export const RiskAlertManagement: React.FC = () => {
   return (
     <AdminLayout>
       <PageHeader
-        title="Risk & Alert Management"
-        subtitle="Manage marine weather bulletins, declare coastal danger levels, and simulate emergency broadcasts."
-        badge="Prototype — integration pending"
+        title={t('alert.title', 'Risk & Alert Management')}
+        subtitle={t('alert.subtitle', 'Manage marine weather bulletins, declare coastal danger levels, and simulate emergency broadcasts.')}
+        badge="Maritime Console"
         action={
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="btn btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-          >
-            <PlusCircle size={18} />
-            <span>Create Announcement</span>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => fetchAlerts(false)}
+              disabled={isRefreshing}
+              className="btn btn-outline btn-sm"
+              style={{ fontSize: '0.75rem', padding: '0.35rem 0.65rem' }}
+            >
+              <RefreshCw size={13} className={isRefreshing ? 'animate-spin' : ''} />
+              <span>{t('status.refresh_now', 'Refresh Now')}</span>
+            </button>
+
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="btn btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <PlusCircle size={18} />
+              <span>{t('alert.create_btn', 'Create Announcement')}</span>
+            </button>
+          </div>
         }
       />
 
@@ -105,32 +146,11 @@ export const RiskAlertManagement: React.FC = () => {
             <CheckCircle size={18} />
             <span>{successToast}</span>
           </div>
-          <button onClick={() => setSuccessToast(null)} style={{ color: '#065f46' }}>
+          <button onClick={() => setSuccessToast(null)} style={{ color: '#065f46', border: 'none', background: 'none', cursor: 'pointer' }}>
             <X size={16} />
           </button>
         </div>
       )}
-
-      {/* Prototype Notice */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--space-3)',
-          backgroundColor: '#eff6ff',
-          border: '1px solid #bfdbfe',
-          borderRadius: 'var(--radius-md)',
-          padding: '0.75rem 1rem',
-          marginBottom: 'var(--space-6)',
-          fontSize: '0.85rem',
-          color: '#1e40af',
-        }}
-      >
-        <Info size={18} style={{ flexShrink: 0 }} />
-        <div>
-          <strong>Simulated Broadcast Notice:</strong> Creating an announcement in this prototype updates local React state for demonstration. No external push notifications or SMS dispatches are delivered to real fishermen.
-        </div>
-      </div>
 
       {/* 4 Severity Badges & Summary Counts */}
       <div
@@ -146,8 +166,12 @@ export const RiskAlertManagement: React.FC = () => {
             <ShieldAlert size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Extreme Risk</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-extreme-text)' }}>{countBySeverity.extreme} Active</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              {t('alert.extreme', 'Extreme Risk')}
+            </div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-extreme-text)' }}>
+              {countBySeverity.extreme} {language === 'ta' ? 'செயலில்' : 'Active'}
+            </div>
           </div>
         </div>
 
@@ -156,8 +180,12 @@ export const RiskAlertManagement: React.FC = () => {
             <AlertTriangle size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>High Danger</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-danger-text)' }}>{countBySeverity.high} Active</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              {t('alert.high', 'High Danger')}
+            </div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-danger-text)' }}>
+              {countBySeverity.high} {language === 'ta' ? 'செயலில்' : 'Active'}
+            </div>
           </div>
         </div>
 
@@ -166,8 +194,12 @@ export const RiskAlertManagement: React.FC = () => {
             <AlertTriangle size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Moderate Caution</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-warning-text)' }}>{countBySeverity.moderate} Active</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              {t('alert.moderate', 'Moderate Caution')}
+            </div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-warning-text)' }}>
+              {countBySeverity.moderate} {language === 'ta' ? 'செயலில்' : 'Active'}
+            </div>
           </div>
         </div>
 
@@ -176,8 +208,12 @@ export const RiskAlertManagement: React.FC = () => {
             <CheckCircle size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Low / Normal</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-success-text)' }}>{countBySeverity.low} Logged</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>
+              {t('alert.low', 'Low / Normal')}
+            </div>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-success-text)' }}>
+              {countBySeverity.low} {language === 'ta' ? 'பதிவானவை' : 'Logged'}
+            </div>
           </div>
         </div>
       </div>
@@ -187,61 +223,79 @@ export const RiskAlertManagement: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
           <div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-              Maritime Bulletins & Danger Broadcasts
+              {t('alert.bulletins_title', 'Maritime Bulletins & Danger Broadcasts')}
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
-              Registry of all active and scheduled coastal safety announcements
+              {t('alert.bulletins_sub', 'Registry of all active and scheduled coastal safety announcements')}
             </p>
           </div>
           <span className="badge-prototype">
-            <Sparkles size={11} /> Live Demo State
+            <Sparkles size={11} /> Maritime Bulletins
           </span>
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
-            <thead>
-              <tr style={{ backgroundColor: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border-light)' }}>
-                <th style={{ padding: '0.75rem 1rem' }}>Bulletin ID</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Title & Description</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Coastal Sector</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Severity Level</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Issued Timeline</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Recommended Directive</th>
-              </tr>
-            </thead>
-            <tbody>
-              {alerts.map((alert) => (
-                <tr key={alert.id} style={{ borderBottom: '1px solid var(--color-border-light)' }}>
-                  <td style={{ padding: '0.85rem 1rem', fontFamily: 'monospace', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
-                    {alert.bulletinId}
-                  </td>
-                  <td style={{ padding: '0.85rem 1rem', maxWidth: '340px' }}>
-                    <div style={{ fontWeight: 700, color: 'var(--color-navy-primary)', marginBottom: '0.2rem' }}>
-                      {alert.title}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
-                      {alert.message}
-                    </div>
-                  </td>
-                  <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>
-                    {alert.coastalRegion}
-                  </td>
-                  <td style={{ padding: '0.85rem 1rem' }}>
-                    <StatusBadge status={alert.severity} size="sm" />
-                  </td>
-                  <td style={{ padding: '0.85rem 1rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-                    <div>Issued: {alert.issuedAt}</div>
-                    <div style={{ color: 'var(--color-text-muted)' }}>Valid: {alert.validUntil}</div>
-                  </td>
-                  <td style={{ padding: '0.85rem 1rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
-                    {alert.recommendedAction}
-                  </td>
+        {isLoading ? (
+          <div style={{ padding: 'var(--space-8)', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+            <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto var(--space-2)' }} />
+            <div>{t('status.loading', 'Loading bulletins...')}</div>
+          </div>
+        ) : alerts.length === 0 ? (
+          <div style={{ padding: 'var(--space-8)', textAlign: 'center', backgroundColor: 'var(--color-bg-alt)', borderRadius: 'var(--radius-md)' }}>
+            <CheckCircle size={32} color="#16a34a" style={{ margin: '0 auto var(--space-2)' }} />
+            <div style={{ fontWeight: 700 }}>{t('status.no_records', 'No active alerts')}</div>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+              <thead>
+                <tr style={{ backgroundColor: 'var(--color-bg-alt)', borderBottom: '1px solid var(--color-border-light)' }}>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('alert.th_id', 'Bulletin ID')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('alert.th_content', 'Title & Description')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('alert.th_sector', 'Coastal Sector')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('alert.th_severity', 'Severity Level')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('alert.th_timeline', 'Issued Timeline')}</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>{t('alert.th_directive', 'Recommended Directive')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {alerts.map((alert) => {
+                  const displayTitle = language === 'ta' && alert.titleTamil ? alert.titleTamil : alert.title;
+                  const displayMessage = language === 'ta' && alert.messageTamil ? alert.messageTamil : alert.message;
+                  const displayAction = language === 'ta' && alert.recommendedActionTamil ? alert.recommendedActionTamil : alert.recommendedAction;
+
+                  return (
+                    <tr key={alert.id} style={{ borderBottom: '1px solid var(--color-border-light)' }}>
+                      <td style={{ padding: '0.85rem 1rem', fontFamily: 'monospace', fontWeight: 700, color: 'var(--color-navy-primary)' }}>
+                        {alert.bulletinId}
+                      </td>
+                      <td style={{ padding: '0.85rem 1rem', maxWidth: '340px' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--color-navy-primary)', marginBottom: '0.2rem' }}>
+                          {displayTitle}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
+                          {displayMessage}
+                        </div>
+                      </td>
+                      <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>
+                        {alert.coastalRegion}
+                      </td>
+                      <td style={{ padding: '0.85rem 1rem' }}>
+                        <StatusBadge status={alert.severity} size="sm" />
+                      </td>
+                      <td style={{ padding: '0.85rem 1rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                        <div>Issued: {alert.issuedAt}</div>
+                        <div style={{ color: 'var(--color-text-muted)' }}>Valid: {alert.validUntil}</div>
+                      </td>
+                      <td style={{ padding: '0.85rem 1rem', fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                        {displayAction}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Create Announcement Modal */}
@@ -268,6 +322,8 @@ export const RiskAlertManagement: React.FC = () => {
               padding: 'var(--space-6)',
               backgroundColor: 'var(--color-surface-white)',
               boxShadow: 'var(--shadow-xl)',
+              maxHeight: '90vh',
+              overflowY: 'auto',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -275,10 +331,10 @@ export const RiskAlertManagement: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <BellRing size={20} color="var(--color-ocean-blue)" />
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-navy-primary)' }}>
-                  Create Safety Announcement
+                  {t('alert.modal_title', 'Create Safety Announcement')}
                 </h3>
               </div>
-              <button onClick={() => setIsModalOpen(false)} style={{ color: 'var(--color-text-muted)' }}>
+              <button onClick={() => setIsModalOpen(false)} style={{ color: 'var(--color-text-muted)', border: 'none', background: 'none', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
@@ -286,7 +342,7 @@ export const RiskAlertManagement: React.FC = () => {
             <form onSubmit={handleCreateAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                  Bulletin Title
+                  {t('alert.modal_bulletin_title', 'Bulletin Title')} (English)
                 </label>
                 <input
                   type="text"
@@ -304,10 +360,29 @@ export const RiskAlertManagement: React.FC = () => {
                 />
               </div>
 
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                  {t('alert.modal_bulletin_title', 'Bulletin Title')} (தமிழ் - Tamil optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="உதா: பலத்த காற்று மற்றும் கரை திரும்பும் எச்சரிக்கை"
+                  value={titleTamil}
+                  onChange={(e) => setTitleTamil(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1.5px solid var(--color-border-light)',
+                    fontSize: '0.9rem',
+                  }}
+                />
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                    Coastal Region
+                    {t('alert.modal_region', 'Coastal Region')}
                   </label>
                   <select
                     value={coastalRegion}
@@ -330,7 +405,7 @@ export const RiskAlertManagement: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                    Severity Level
+                    {t('alert.modal_severity', 'Severity Level')}
                   </label>
                   <select
                     value={severity}
@@ -344,17 +419,17 @@ export const RiskAlertManagement: React.FC = () => {
                       fontWeight: 600,
                     }}
                   >
-                    <option value="low">Low Risk</option>
-                    <option value="moderate">Moderate Caution</option>
-                    <option value="high">High Danger</option>
-                    <option value="extreme">Extreme Danger</option>
+                    <option value="low">{t('alert.low', 'Low Risk')}</option>
+                    <option value="moderate">{t('alert.moderate', 'Moderate Caution')}</option>
+                    <option value="high">{t('alert.high', 'High Danger')}</option>
+                    <option value="extreme">{t('alert.extreme', 'Extreme Danger')}</option>
                   </select>
                 </div>
               </div>
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                  Safety Message / Advisory Description
+                  {t('alert.modal_message', 'Safety Message / Advisory Description')}
                 </label>
                 <textarea
                   rows={3}
@@ -375,7 +450,7 @@ export const RiskAlertManagement: React.FC = () => {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                  Recommended Action
+                  {t('alert.modal_action', 'Recommended Action')}
                 </label>
                 <input
                   type="text"
@@ -398,10 +473,10 @@ export const RiskAlertManagement: React.FC = () => {
                   onClick={() => setIsModalOpen(false)}
                   className="btn btn-outline"
                 >
-                  Cancel
+                  {t('alert.modal_cancel', 'Cancel')}
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  <span>Publish Announcement (Local Demo)</span>
+                  <span>{t('alert.modal_submit', 'Publish Announcement')}</span>
                 </button>
               </div>
             </form>

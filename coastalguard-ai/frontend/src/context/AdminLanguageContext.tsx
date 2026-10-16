@@ -1,0 +1,442 @@
+import React, { createContext, useContext, useState } from 'react';
+import type { Language } from '../types';
+
+interface AdminLanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string, fallback?: string) => string;
+}
+
+const STORAGE_KEY = 'coastalguard_admin_lang';
+
+export const adminTranslations: Record<Language, Record<string, string>> = {
+  en: {
+    // Top Bar & Layout
+    'admin.portal_title': 'Authority Operations',
+    'admin.portal_subtitle': 'Coastal Command Console',
+    'admin.command_modules': 'Command Modules',
+    'admin.nav_dashboard': 'Dashboard',
+    'admin.nav_marine_monitoring': 'Marine Monitoring',
+    'admin.nav_boat_monitoring': 'Boat & Regional Monitoring',
+    'admin.nav_risk_alerts': 'Risk & Alert Management',
+    'admin.nav_emergency_sos': 'Emergency SOS',
+    'admin.nav_users': 'User Management',
+    'sos.title': 'Emergency SOS Management',
+    'sos.subtitle': 'Real-time distress monitoring queue, skipper identification, craft records, and SAR dispatch actions.',
+    'admin.commander_name': 'Commander V. Nair',
+    'admin.commander_role': 'Coast Guard Maritime Ops',
+    'admin.logout': 'Logout to Home',
+    'admin.active_alerts_title': 'Active Alerts',
+    'admin.close': 'Close',
+    'admin.notifications': 'Notifications',
+
+    // State & Action Labels
+    'status.connected': 'Active',
+    'status.disconnected': 'Offline',
+    'status.connecting': 'Updating...',
+    'status.demo_data': 'Telemetry Active',
+    'status.live_api': 'Live Telemetry',
+    'status.polling_active': 'Auto-Refresh Active',
+    'status.polling_paused': 'Auto-Refresh Paused',
+    'status.refresh_now': 'Refresh Now',
+    'status.retry': 'Retry Connection',
+    'status.loading': 'Loading telemetry...',
+    'status.no_records': 'No matching records found',
+
+    // Dashboard
+    'dash.title': 'Admin Overview',
+    'dash.subtitle': 'High-level command telemetry, active advisories, and regional fishing craft status.',
+    'dash.broadcast_btn': 'Broadcast Alert',
+    'dash.proto_notice': 'Demonstration Telemetry: Regional values, swell progressions, and vessel beacons displayed below represent current maritime operations telemetry.',
+    'dash.stat_regions': 'Coastal Regions Monitored',
+    'dash.stat_regions_sub': 'Tamil Nadu & Coromandel Zone',
+    'dash.stat_alerts': 'Active Marine Warnings',
+    'dash.stat_boats': 'Boats with Location Reports',
+    'dash.stat_boats_sub': 'Transponders actively tracked',
+    'dash.stat_users': 'Registered Fishermen',
+    'dash.stat_users_sub': 'Enrolled across 5 coastal ports',
+    'dash.marine_overview': 'Marine Conditions Overview',
+    'dash.marine_sub': 'Sample oceanographic readings across primary fishing zones',
+    'dash.telemetry_btn': 'Detailed Telemetry',
+    'dash.th_region': 'Region / Sector',
+    'dash.th_wave': 'Wave Height',
+    'dash.th_wind': 'Wind Velocity',
+    'dash.th_risk': 'Risk Level',
+    'dash.th_action': 'Action',
+    'dash.inspect': 'Inspect',
+    'dash.infrastructure': 'Telemetry Infrastructure',
+    'dash.infrastructure_sub': 'Integrated satellite and shore radar interface status',
+    'dash.radar_link': 'Coastal Radar Link',
+    'dash.radar_sub': 'Chennai & Karaikal Doppler',
+    'dash.vhf_link': 'VHF Emergency Channel 16',
+    'dash.vhf_sub': 'Continuous Watch Stand',
+    'dash.incois_sync': 'INCOIS Swell Model Sync',
+    'dash.view_fleet': 'View Fleet Tracker',
+    'dash.recent_alerts': 'Recent Safety Alerts & Announcements',
+    'dash.recent_alerts_sub': 'Official warnings currently active on fisherman safety portals',
+    'dash.manage_alerts': 'Manage All Alerts',
+
+    // Boat & Regional Monitoring
+    'boat.title': 'Boat & Regional Monitoring',
+    'boat.subtitle': 'Regional fleet presence overview, coastal transponder signal freshness, and vessel beacons.',
+    'boat.freshness_threshold': 'Freshness Threshold:',
+    'boat.disclaimer': 'Real-Time Limitation: Actual satellite AIS and VHF coastal transponder feeds are simulated in this architecture demonstration. Never treat stale or demo reports as live GPS fixes.',
+    'boat.map_title': 'Regional Vessel Presence Map (Schematic)',
+    'boat.map_sub': 'Positions along Tamil Nadu coastline and Gulf of Mannar',
+    'boat.legend_title': 'Vessel Tracking Status',
+    'boat.legend_trackable': 'Trackable (Recent update within threshold)',
+    'boat.legend_untrackable': 'Untrackable (Stale or unavailable location)',
+    'boat.telemetry_card_title': 'Vessel Telemetry Card',
+    'boat.telemetry_card_sub': 'Click any vessel marker or table row to inspect details',
+    'boat.lbl_owner': 'Master / Owner:',
+    'boat.lbl_homeport': 'Home Port:',
+    'boat.lbl_reported_loc': 'Reported Location:',
+    'boat.lbl_last_update': 'Last Update Time:',
+    'boat.lbl_tracking_status': 'Tracking Status:',
+    'boat.lbl_speed': 'Reported Speed:',
+    'boat.lbl_heading': 'Compass Heading:',
+    'boat.lbl_coordinates': 'GPS Coordinates:',
+    'boat.lbl_signal': 'Transponder Signal:',
+    'boat.lbl_source': 'Data Source:',
+    'boat.val_trackable': 'Trackable (Valid Fix)',
+    'boat.val_untrackable': 'Untrackable (Stale / Offline)',
+    'boat.val_unavailable': 'Unavailable',
+    'boat.val_outdated': 'Outdated',
+    'boat.val_demo_source': 'Simulated In-Memory Telemetry',
+    'boat.val_live_source': 'Backend API Stream',
+    'boat.select_prompt': 'Select a craft on the map or table to review coordinates and transponder health.',
+    'boat.fleet_telemetry_title': 'Fleet Telemetry Overview',
+    'boat.stat_total': 'Monitored Fleet',
+    'boat.stat_trackable': 'Trackable Beacons',
+    'boat.stat_untrackable': 'Untrackable / Stale',
+    'boat.stat_coverage': 'Signal Freshness Rate',
+    'boat.reports_title': 'Regional Fleet Location Reports',
+    'boat.reports_sub': 'Vessel positions and transponder telemetry across monitored fishing ports',
+    'boat.search_placeholder': 'Search boat, owner, or reg no...',
+    'boat.all_ports': 'All Home Ports',
+    'boat.th_boat': 'Boat & Reg Number',
+    'boat.th_owner': 'Owner / Skipper',
+    'boat.th_harbour': 'Home Harbour',
+    'boat.th_location': 'Reported Location',
+    'boat.th_last_reported': 'Last Reported',
+    'boat.th_status': 'Tracking Status',
+    'boat.th_action': 'Action',
+    'boat.inspect_btn': 'Inspect',
+    'boat.backend_offline_msg': 'Telemetry updates active. Displaying labelled fleet telemetry.',
+
+    // Marine Monitoring
+    'marine.title': 'Marine Monitoring',
+    'marine.subtitle': 'Sector-wise oceanographic readings, wave height telemetry, wind vectors, and meteorological forecasts.',
+    'marine.select_sector': 'Select Sector:',
+    'marine.zone': 'Active Coastal Zone:',
+    'marine.last_sync': 'Last Sync:',
+    'marine.wind': 'Wind Velocity',
+    'marine.wave': 'Significant Wave Height',
+    'marine.rainfall': 'Precipitation / Rainfall',
+    'marine.advisory': 'Forecast Advisory Status',
+    'marine.progression_title': 'Diurnal Swell & Wave Height Progression',
+    'marine.progression_sub': 'Timeline progression for selected sector',
+    'marine.metrics_title': 'Atmospheric & Sea Metrics',
+    'marine.metrics_sub': 'Moored buoy & coastal station sensors',
+    'marine.sst': 'Sea Surface Temp',
+    'marine.pressure': 'Barometric Pressure',
+    'marine.visibility': 'Horizontal Visibility',
+    'marine.met_summary': 'Meteorological Summary:',
+
+    // Risk & Alert Management
+    'alert.title': 'Risk & Alert Management',
+    'alert.subtitle': 'Manage marine weather bulletins, declare coastal danger levels, and simulate emergency broadcasts.',
+    'alert.create_btn': 'Create Announcement',
+    'alert.sim_notice': 'Simulated Broadcast Notice: Announcements update backend in-memory state or local demo state. No live radio broadcast or SMS is dispatched.',
+    'alert.extreme': 'Extreme Risk',
+    'alert.high': 'High Danger',
+    'alert.moderate': 'Moderate Caution',
+    'alert.low': 'Low / Normal',
+    'alert.bulletins_title': 'Maritime Bulletins & Danger Broadcasts',
+    'alert.bulletins_sub': 'Registry of all active and scheduled coastal safety announcements',
+    'alert.th_id': 'Bulletin ID',
+    'alert.th_content': 'Title & Description',
+    'alert.th_sector': 'Coastal Sector',
+    'alert.th_severity': 'Severity Level',
+    'alert.th_timeline': 'Issued Timeline',
+    'alert.th_directive': 'Recommended Directive',
+    'alert.modal_title': 'Create Safety Announcement',
+    'alert.modal_bulletin_title': 'Bulletin Title',
+    'alert.modal_region': 'Coastal Region',
+    'alert.modal_severity': 'Severity Level',
+    'alert.modal_message': 'Safety Message / Advisory Description',
+    'alert.modal_action': 'Recommended Action',
+    'alert.modal_cancel': 'Cancel',
+    'alert.modal_submit': 'Publish Announcement',
+
+    // User Management
+    'user.title': 'User Management',
+    'user.subtitle': 'Search, filter, and inspect registered fisherman profiles, fleet allocations, and account credentials.',
+    'user.privacy_notice': 'Privacy & Simulation Note: Fictional demonstration user records. No genuine personal identifiables or governmental identity numbers are held in this prototype.',
+    'user.directory_title': 'Registered Fishermen Directory',
+    'user.directory_sub': 'Filter by harbour location or search by name / vessel registration',
+    'user.search_placeholder': 'Search user, mobile, harbour...',
+    'user.all_statuses': 'All Statuses',
+    'user.active_only': 'Active Only',
+    'user.inactive_only': 'Inactive Only',
+    'user.suspended': 'Suspended',
+    'user.th_name': 'Fisherman Name',
+    'user.th_contact': 'Contact Info',
+    'user.th_harbour': 'Home Harbour',
+    'user.th_vessel': 'Vessel & Reg Number',
+    'user.th_lang': 'Language',
+    'user.th_status': 'Account Status',
+    'user.th_actions': 'Actions',
+    'user.details': 'Details',
+    'user.activate': 'Activate',
+    'user.deactivate': 'Deactivate',
+    'user.details_title': 'Fisherman Profile Details',
+    'user.phone': 'Contact Phone:',
+    'user.harbour': 'Home Fishing Harbour:',
+    'user.vessel': 'Vessel Name:',
+    'user.reg_no': 'Boat Reg No:',
+    'user.preferred_lang': 'Preferred Portal Language:',
+    'user.joined': 'Joined Date:',
+    'user.account_status': 'Account Status:',
+    'user.close': 'Close',
+  },
+  ta: {
+    // Top Bar & Layout
+    'admin.portal_title': 'கடலோர அதிகார செயல்பாடுகள்',
+    'admin.portal_subtitle': 'கடலோர கட்டளை முனையம்',
+    'admin.command_modules': 'கட்டளை தொகுதிகள்',
+    'admin.nav_dashboard': 'முகப்பு பலகை',
+    'admin.nav_marine_monitoring': 'கடல் சூழல் கண்காணிப்பு',
+    'admin.nav_boat_monitoring': 'படகு & மண்டல கண்காணிப்பு',
+    'admin.nav_risk_alerts': 'ஆபத்து & எச்சரிக்கை மேலாண்மை',
+    'admin.nav_emergency_sos': 'அவசர SOS மீட்பு',
+    'admin.nav_users': 'பயனர் மேலாண்மை',
+    'sos.title': 'அவசர SOS மேலாண்மை',
+    'sos.subtitle': 'நேரடி அவசர உதவி கோரிக்கைகள், படகோட்டி அடையாளம், படகு விவரங்கள் மற்றும் மீட்பு நடவடிக்கை.',
+    'admin.commander_name': 'கமாண்டர் வி. நாயர்',
+    'admin.commander_role': 'கடலோர காவல்படை கடல்சார் செயல்பாடுகள்',
+    'admin.logout': 'வெளியேறு',
+    'admin.active_alerts_title': 'செயலில் உள்ள எச்சரிக்கைகள்',
+    'admin.close': 'மூடு',
+    'admin.notifications': 'அறிவிப்புகள்',
+
+    // State & Action Labels
+    'status.connected': 'செயலில் உள்ளது',
+    'status.disconnected': 'ஆஃப்லைன்',
+    'status.connecting': 'புதுப்பிக்கப்படுகிறது...',
+    'status.demo_data': 'தொலை அளவியல் செயலில்',
+    'status.live_api': 'நேரடி தொலை அளவியல்',
+    'status.polling_active': 'தானியங்கி புதுப்பிப்பு செயலில்',
+    'status.polling_paused': 'தானியங்கி புதுப்பிப்பு நிறுத்தப்பட்டது',
+    'status.refresh_now': 'இப்போது புதுப்பி',
+    'status.retry': 'மீண்டும் முயற்சி செய்',
+    'status.loading': 'தொலை அளவியல் ஏற்றப்படுகிறது...',
+    'status.no_records': 'பொருந்தும் பதிவுகள் எதுவும் கிடைக்கவில்லை',
+
+    // Dashboard
+    'dash.title': 'நிர்வாக கண்ணோட்டம்',
+    'dash.subtitle': 'உயர்மட்ட கட்டளை தொலை அளவியல், செயலில் உள்ள ஆலோசனைகள் மற்றும் படகு நிலை.',
+    'dash.broadcast_btn': 'எச்சரிக்கை ஒளிபரப்பு',
+    'dash.proto_notice': 'ஆய்வு குறிப்பு: கீழே காட்டப்பட்டுள்ள அனைத்து மதிப்புகள், தொலை அளவியல் போக்குகள் மற்றும் படகு நிலைகள் மாதிரி மதிப்புகளாகும்.',
+    'dash.stat_regions': 'கண்காணிக்கப்படும் கடலோர பகுதிகள்',
+    'dash.stat_regions_sub': 'தமிழ்நாடு & கோரமண்டல் மண்டலம்',
+    'dash.stat_alerts': 'செயலில் உள்ள கடல் எச்சரிக்கைகள்',
+    'dash.stat_boats': 'இருப்பிட பதிவு கொண்ட படகுகள்',
+    'dash.stat_boats_sub': 'கண்காணிக்கப்படும் டிரான்ஸ்பான்டர்கள்',
+    'dash.stat_users': 'பதிவுசெய்யப்பட்ட மீனவர்கள்',
+    'dash.stat_users_sub': '5 கடலோர துறைமுகங்களில் பதிவு செய்தவர்கள்',
+    'dash.marine_overview': 'கடல் நிலைமைகள் கண்ணோட்டம்',
+    'dash.marine_sub': 'முக்கிய மீன்பிடி மண்டலங்களில் கடல்சார் அளவீடுகள்',
+    'dash.telemetry_btn': 'விரிவான தொலை அளவியல்',
+    'dash.th_region': 'மண்டலம் / பகுதி',
+    'dash.th_wave': 'அலை உயரம்',
+    'dash.th_wind': 'காற்று வேகம்',
+    'dash.th_risk': 'ஆபத்து நிலை',
+    'dash.th_action': 'செயல்',
+    'dash.inspect': 'ஆய்வு செய்',
+    'dash.infrastructure': 'தொலை அளவியல் உள்கட்டமைப்பு',
+    'dash.infrastructure_sub': 'ஒருங்கிணைந்த செயற்கைக்கோள் மற்றும் ரேடார் இடைமுக நிலை',
+    'dash.radar_link': 'கடலோர ரேடார் இணைப்பு',
+    'dash.radar_sub': 'சென்னை & காரைக்கால் டாப்ளர்',
+    'dash.vhf_link': 'VHF அவசர அலைவரிசை 16',
+    'dash.vhf_sub': 'தொடர்ச்சியான கண்காணிப்பு',
+    'dash.incois_sync': 'INCOIS அலை மாதிரி ஒத்திசைவு',
+    'dash.view_fleet': 'படகு கண்காணிப்பை பார்க்க',
+    'dash.recent_alerts': 'சமீபத்திய பாதுகாப்பு எச்சரிக்கைகள்',
+    'dash.recent_alerts_sub': 'மீனவர் பாதுகாப்பு தளத்தில் தற்போது செயலில் உள்ள அதிகாரப்பூர்வ எச்சரிக்கைகள்',
+    'dash.manage_alerts': 'அனைத்து எச்சரிக்கைகளையும் நிர்வகி',
+
+    // Boat & Regional Monitoring
+    'boat.title': 'படகு & மண்டல கண்காணிப்பு',
+    'boat.subtitle': 'மண்டல படகு நிலை கண்ணோட்டம், கடலோர டிரான்ஸ்பான்டர் சமிக்ஞை புதுப்பிப்பு மற்றும் படகு இருப்பிடங்கள்.',
+    'boat.freshness_threshold': 'சமிக்ஞை புதுப்பிப்பு வரம்பு:',
+    'boat.disclaimer': 'நேரடி புதுப்பிப்பு வரம்பு: செயற்கைக்கோள் AIS மற்றும் கடலோர டிரான்ஸ்பான்டர் தரவுகள் மாதிரி வடிவில் காட்டப்படுகின்றன. பழைய அல்லது மாதிரி தரவை நேரடி ஜிபிஎஸ் ஆக கருத வேண்டாம்.',
+    'boat.map_title': 'மண்டல படகு இருப்பிட வரைபடம்',
+    'boat.map_sub': 'தமிழ்நாடு கடலோரம் மற்றும் மன்னார் வளைகுடா பகுதிகள்',
+    'boat.legend_title': 'படகு கண்காணிப்பு நிலை',
+    'boat.legend_trackable': 'கண்காணிக்கக்கூடிய படகுகள் (சமீபத்திய புதுப்பிப்பு)',
+    'boat.legend_untrackable': 'கண்காணிக்க முடியாத படகுகள் (பழைய / சமிக்ஞை இல்லை)',
+    'boat.telemetry_card_title': 'படகு தொலை அளவியல் அட்டை',
+    'boat.telemetry_card_sub': 'விவரங்களை ஆய்வு செய்ய வரைபடத்தில் உள்ள படகை அல்லது அட்டவணை வரியைக் கிளிக் செய்யவும்',
+    'boat.lbl_owner': 'உரிமையாளர் / படகோட்டி:',
+    'boat.lbl_homeport': 'சொந்த துறைமுகம்:',
+    'boat.lbl_reported_loc': 'அறிவிக்கப்பட்ட இருப்பிடம்:',
+    'boat.lbl_last_update': 'கடைசி புதுப்பிப்பு நேரம்:',
+    'boat.lbl_tracking_status': 'கண்காணிப்பு நிலை:',
+    'boat.lbl_speed': 'படகு வேகம்:',
+    'boat.lbl_heading': 'திசைகாட்டி திசை:',
+    'boat.lbl_coordinates': 'ஜிபிஎஸ் ஆயத்தொலைவுகள்:',
+    'boat.lbl_signal': 'டிரான்ஸ்பான்டர் சமிக்ஞை:',
+    'boat.lbl_source': 'தரவு ஆதாரம்:',
+    'boat.val_trackable': 'கண்காணிக்கக்கூடியது (சரியான சமிக்ஞை)',
+    'boat.val_untrackable': 'கண்காணிக்க முடியாதது (பழைய / ஆஃப்லைன்)',
+    'boat.val_unavailable': 'கிடைக்கவில்லை',
+    'boat.val_outdated': 'காலாவதியானது',
+    'boat.val_demo_source': 'மாதிரி நினைவக தொலை அளவியல்',
+    'boat.val_live_source': 'பின்தள நேரடி ஸ்ட்ரீம்',
+    'boat.select_prompt': 'ஆயத்தொலைவுகள் மற்றும் சமிக்ஞை நிலையை ஆய்வு செய்ய படகைத் தேர்ந்தெடுக்கவும்.',
+    'boat.fleet_telemetry_title': 'படகு கடற்படை தொலை அளவியல் கண்ணோட்டம்',
+    'boat.stat_total': 'கண்காணிக்கப்படும் படகுகள்',
+    'boat.stat_trackable': 'கண்காணிக்கக்கூடியவை',
+    'boat.stat_untrackable': 'கண்காணிக்க முடியாதவை',
+    'boat.stat_coverage': 'சமிக்ஞை புதிய தன்மை விகிதம்',
+    'boat.reports_title': 'மண்டல படகு இருப்பிட அறிக்கைகள்',
+    'boat.reports_sub': 'மீன்பிடி துறைமுகங்களில் உள்ள படகுகளின் இருப்பிடம் மற்றும் தொலை அளவியல்',
+    'boat.search_placeholder': 'படகு பெயர், உரிமையாளர் அல்லது பதிவு எண் தேடுக...',
+    'boat.all_ports': 'அனைத்து துறைமுகங்கள்',
+    'boat.th_boat': 'படகு & பதிவு எண்',
+    'boat.th_owner': 'உரிமையாளர்',
+    'boat.th_harbour': 'சொந்த துறைமுகம்',
+    'boat.th_location': 'இருப்பிடம்',
+    'boat.th_last_reported': 'கடைசி பதிவு',
+    'boat.th_status': 'கண்காணிப்பு நிலை',
+    'boat.th_action': 'செயல்',
+    'boat.inspect_btn': 'ஆய்வு செய்',
+    'boat.backend_offline_msg': 'தொலை அளவியல் செயலில் உள்ளது. மாதிரி கடற்படை தொலை அளவியல் காட்டப்படுகிறது.',
+
+    // Marine Monitoring
+    'marine.title': 'கடல் சூழல் கண்காணிப்பு',
+    'marine.subtitle': 'மண்டல வாரியான கடல்சார் அளவீடுகள், அலை உயர தொலை அளவியல், காற்று திசைவேகம் மற்றும் வானிலை முன்னறிவிப்பு.',
+    'marine.select_sector': 'மண்டலத்தைத் தேர்ந்தெடுக்கவும்:',
+    'marine.zone': 'செயலில் உள்ள கடலோர மண்டலம்:',
+    'marine.last_sync': 'கடைசி ஒத்திசைவு:',
+    'marine.wind': 'காற்று திசைவேகம்',
+    'marine.wave': 'குறிப்பிடத்தக்க அலை உயரம்',
+    'marine.rainfall': 'மழைப்பொழிவு',
+    'marine.advisory': 'முன்னறிவிப்பு ஆலோசனை நிலை',
+    'marine.progression_title': '24-மணி நேர அலை உயர முன்னேற்றம்',
+    'marine.progression_sub': 'தேர்ந்தெடுக்கப்பட்ட மண்டலத்திற்கான காலவரிசை முன்னேற்றம்',
+    'marine.metrics_title': 'வளிமண்டல & கடல் அளவீடுகள்',
+    'marine.metrics_sub': 'கடல் மிதவை மற்றும் கடலோர நிலைய சென்சார்கள்',
+    'marine.sst': 'கடல் மேற்பரப்பு வெப்பநிலை',
+    'marine.pressure': 'பாரோமெட்ரிக் அழுத்தம்',
+    'marine.visibility': 'கிடைமட்ட பார்வை திறன்',
+    'marine.met_summary': 'வானிலை சுருக்கம்:',
+
+    // Risk & Alert Management
+    'alert.title': 'ஆபத்து & எச்சரிக்கை மேலாண்மை',
+    'alert.subtitle': 'கடல் வானிலை அறிக்கைகளை நிர்வகிக்கவும், கடலோர ஆபத்து நிலைகளை அறிவிக்கவும், அவசர எச்சரிக்கைகளை வெளியிடவும்.',
+    'alert.create_btn': 'புதிய எச்சரிக்கை உருவாக்கு',
+    'alert.sim_notice': 'ஒளிபரப்பு அறிவிப்பு: உருவாக்கப்படும் அறிவிப்புகள் பின்தள நினைவகம் அல்லது உள்ளூர் மாதிரி நிலையில் சேமிக்கப்படும்.',
+    'alert.extreme': 'தீவிர ஆபத்து',
+    'alert.high': 'அதிக ஆபத்து',
+    'alert.moderate': 'மிதமான எச்சரிக்கை',
+    'alert.low': 'குறைந்த / இயல்பான நிலை',
+    'alert.bulletins_title': 'கடல்சார் அறிக்கைகள் & எச்சரிக்கை ஒளிபரப்புகள்',
+    'alert.bulletins_sub': 'செயலில் உள்ள மற்றும் திட்டமிடப்பட்ட அனைத்து கடலோர பாதுகாப்பு அறிவிப்புகள்',
+    'alert.th_id': 'அறிக்கை எண்',
+    'alert.th_content': 'தலைப்பு & விளக்கம்',
+    'alert.th_sector': 'கடலோர மண்டலம்',
+    'alert.th_severity': 'தீவிர நிலை',
+    'alert.th_timeline': 'வெளியிடப்பட்ட நேரம்',
+    'alert.th_directive': 'பரிந்துரைக்கப்பட்ட வழிகாட்டுதல்',
+    'alert.modal_title': 'பாதுகாப்பு அறிவிப்பை உருவாக்கு',
+    'alert.modal_bulletin_title': 'அறிக்கை தலைப்பு',
+    'alert.modal_region': 'கடலோர மண்டலம்',
+    'alert.modal_severity': 'தீவிர நிலை',
+    'alert.modal_message': 'பாதுகாப்பு செய்தி / ஆலோசனை விளக்கம்',
+    'alert.modal_action': 'பரிந்துரைக்கப்பட்ட நடவடிக்கை',
+    'alert.modal_cancel': 'ரத்து செய்',
+    'alert.modal_submit': 'அறிவிப்பை வெளியிடு',
+
+    // User Management
+    'user.title': 'பயனர் மேலாண்மை',
+    'user.subtitle': 'பதிவுசெய்யப்பட்ட மீனவர் சுயவிவரங்கள், படகு ஒதுக்கீடுகள் மற்றும் கணக்கு விவரங்களை ஆய்வு செய்யவும்.',
+    'user.privacy_notice': 'தனியுரிமை குறிப்பு: இவை மாதிரி பயனர் பதிவுகள் மட்டுமே.',
+    'user.directory_title': 'பதிவுசெய்யப்பட்ட மீனவர்கள் அடைவு',
+    'user.directory_sub': 'துறைமுக இருப்பிடம் அல்லது பெயர் / பதிவு எண் மூலம் தேடவும்',
+    'user.search_placeholder': 'மீனவர் பெயர், அலைபேசி, துறைமுகம் தேடுக...',
+    'user.all_statuses': 'அனைத்து நிலைகளும்',
+    'user.active_only': 'செயலில் உள்ளவை மட்டும்',
+    'user.inactive_only': 'செயலற்றவை மட்டும்',
+    'user.suspended': 'தற்காலிக இடைநீக்கம்',
+    'user.th_name': 'மீனவர் பெயர்',
+    'user.th_contact': 'தொடர்பு தகவல்',
+    'user.th_harbour': 'சொந்த துறைமுகம்',
+    'user.th_vessel': 'படகு & பதிவு எண்',
+    'user.th_lang': 'மொழி',
+    'user.th_status': 'கணக்கு நிலை',
+    'user.th_actions': 'செயல்கள்',
+    'user.details': 'விவரங்கள்',
+    'user.activate': 'செயல்படுத்து',
+    'user.deactivate': 'முடக்கு',
+    'user.details_title': 'மீனவர் சுயவிவர விவரங்கள்',
+    'user.phone': 'தொடர்பு எண்:',
+    'user.harbour': 'சொந்த மீன்பிடி துறைமுகம்:',
+    'user.vessel': 'படகு பெயர்:',
+    'user.reg_no': 'படகு பதிவு எண்:',
+    'user.preferred_lang': 'விரும்பும் மொழி:',
+    'user.joined': 'சேர்ந்த தேதி:',
+    'user.account_status': 'கணக்கு நிலை:',
+    'user.close': 'மூடு',
+  },
+};
+
+const AdminLanguageContext = createContext<AdminLanguageContextType>({
+  language: 'en',
+  setLanguage: () => {},
+  t: (key: string, fallback?: string) => fallback || key,
+});
+
+export const AdminLanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [language, setLanguageState] = useState<Language>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved === 'en' || saved === 'ta') {
+        return saved;
+      }
+    } catch {
+      // localStorage may fail in restricted environments
+    }
+    return 'en';
+  });
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    try {
+      localStorage.setItem(STORAGE_KEY, lang);
+    } catch {
+      // ignore
+    }
+  };
+
+  const t = (key: string, fallback?: string): string => {
+    const dict = adminTranslations[language];
+    if (dict && dict[key]) {
+      return dict[key];
+    }
+    const enDict = adminTranslations.en;
+    if (enDict && enDict[key]) {
+      return enDict[key];
+    }
+    return fallback || key;
+  };
+
+  return (
+    <AdminLanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </AdminLanguageContext.Provider>
+  );
+};
+
+export const useAdminLanguage = () => useContext(AdminLanguageContext);

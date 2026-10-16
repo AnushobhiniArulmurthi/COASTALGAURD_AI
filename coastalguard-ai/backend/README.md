@@ -1,16 +1,34 @@
-# CoastalGuard AI — Backend (Planned Architecture)
+# CoastalGuard AI — Backend Service
 
-This directory is reserved for the future backend service of the **CoastalGuard AI** marine safety platform.
+This directory provides the backend API service for the **CoastalGuard AI** marine safety platform.
 
-## Planned Backend Architecture
+## 📌 Architecture & Endpoints
 
-- **Runtime & Framework**: Node.js / Express or Python FastAPI for marine data processing.
-- **Microservices / Integrations**:
-  - Marine Weather & Oceanographic Data Ingestion (INCOIS, NOAA, Open-Meteo marine APIs).
-  - MATLAB integration for coastal swell calculation and wave dynamics modelling.
-  - Supabase / PostgreSQL for database persistence and authentication.
-  - Gemini AI / Google GenAI service for automated translation and plain-language alert explanations.
-  - Telemetry & VHF/AIS coastal boat transponder data ingestion.
+The backend is built as a zero-dependency in-memory HTTP API designed to serve marine telemetries, regional fleet reports, risk advisories, and fisherman directories without connecting to an external database.
 
-## Note
-This is currently a **Frontend Prototype**. Backend services are not yet implemented. All data displayed in the frontend prototype is fictional sample data for demonstration.
+### Implemented REST Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | Service health status and real-time capabilities |
+| `GET` | `/api/vessels` | Full fleet transponder reports and telemetry |
+| `GET` | `/api/vessels/:id` | Detailed telemetry for a specific vessel |
+| `GET` | `/api/marine-conditions` | Multi-sector oceanographic conditions |
+| `GET` | `/api/marine-conditions/:regionId` | Specific sector oceanographic telemetry |
+| `GET` | `/api/alerts` | Active marine safety bulletins and danger notices |
+| `POST` | `/api/alerts` | Publish a new safety bulletin to in-memory store |
+| `GET` | `/api/users` | Directory of registered fishermen profiles |
+| `PATCH` | `/api/users/:id/status` | Toggle or update user account status |
+
+## 🚀 Running the Backend
+
+```bash
+cd backend
+npm start
+```
+Default port: `5000` (`http://localhost:5000/api`)
+
+## ⚠️ Real-Time & Database Limitations
+
+- **Database Restriction**: In compliance with security and architectural rules, no direct connection to Supabase or external SQL databases is configured. All records persist in-memory during server runtime.
+- **Real-Time Data Feeds**: Actual live satellite AIS feeds (e.g., MarineTraffic or Spire) and VHF shore coastal radar receivers are not connected. The API serves clearly labelled telemetry reports for demonstration and architectural validation.
